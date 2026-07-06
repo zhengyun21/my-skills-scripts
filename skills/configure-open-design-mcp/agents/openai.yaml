@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configure Open Design MCP"
+  short_description: "Register Open Design as a Codex MCP server."
+  default_prompt: "Use $configure-open-design-mcp to register the local Open Design MCP server with Codex."
