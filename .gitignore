@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.cache/
+.tmp/
+.trae/documents/
+.trae/state/
+.trae/skills/.DS_Store
+Pixelle-Video/
+ai-news-20260725/
+*.mp4
+*.jpg
+*.png
+.DS_Store
+Thumbs.db
+*.log

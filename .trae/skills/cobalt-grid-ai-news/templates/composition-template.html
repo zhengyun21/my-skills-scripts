@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>{{TITLE}} · Cobalt Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #f5f0e1;
+      }
+      @font-face { font-family: 'PingFang SC'; src: local('PingFang SC'), local('PingFang SC Regular'); }
+      @font-face { font-family: 'Microsoft YaHei'; src: local('Microsoft YaHei'), local('微软雅黑'); }
+      @font-face { font-family: 'Source Han Serif SC'; src: local('Source Han Serif SC'); }
+      @font-face { font-family: '思源宋体'; src: local('Source Han Serif SC'), local('思源宋体'), local('Noto Serif SC'); }
+      @font-face { font-family: 'Noto Serif SC'; src: local('Noto Serif SC'), local('Source Han Serif SC'), local('思源宋体'); }
+      @font-face { font-family: 'Source Han Sans SC'; src: local('Source Han Sans SC'), local('Noto Sans SC'), local('思源黑体'), local('思源黑体 Regular'); }
+      @font-face { font-family: 'Noto Sans SC'; src: local('Noto Sans SC'), local('Source Han Sans SC'), local('思源黑体'); }
+      @font-face { font-family: '思源黑体'; src: local('Source Han Sans SC'), local('Noto Sans SC'), local('思源黑体'); }
+      body {
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        color: #1e3aeb;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+        visibility: hidden;
+      }
+
+      /* ===== Cobalt Grid Background ===== */
+      .bg-paper {
+        position: absolute;
+        inset: -2px;
+        background: #f5f0e1;
+      }
+      .bg-grid {
+        position: absolute;
+        inset: -2px;
+        opacity: 0;
+      }
+      .bg-grid-major {
+        position: absolute;
+        inset: -2px;
+        opacity: 0;
+      }
+      .bg-perspective {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .frame-border-top {
+        position: absolute;
+        top: 40px;
+        left: 60px;
+        right: 60px;
+        height: 2px;
+        background: #1e3aeb;
+      }
+      .frame-border-bottom {
+        position: absolute;
+        bottom: 40px;
+        left: 60px;
+        right: 60px;
+        height: 2px;
+        background: #1e3aeb;
+      }
+
+      /* Right side vertical line decoration (staircase pattern) */
+      .stair-deco {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 120px;
+        height: 100%;
+        pointer-events: none;
+      }
+      .stair-line {
+        position: absolute;
+        right: 0;
+        background: #1e3aeb;
+        opacity: 0.5;
+      }
+
+      /* ===== Header & Footer (shared across clips) ===== */
+      .header-bar {
+        position: absolute;
+        top: 60px;
+        left: 60px;
+        right: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        color: #1e3aeb;
+        text-transform: uppercase;
+      }
+      .footer-bar {
+        position: absolute;
+        bottom: 60px;
+        left: 60px;
+        right: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: 1px;
+        color: #1e3aeb;
+        opacity: 0.8;
+      }
+
+      /* ===== Scene Wrapper ===== */
+      .scene-wrapper {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 160px 80px 360px;
+      }
+
+      /* ===== News Elements ===== */
+      .news-number-large {
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        font-size: 180px;
+        font-weight: 700;
+        line-height: 1;
+        color: #1e3aeb;
+        letter-spacing: -4px;
+      }
+      .news-category {
+        margin-top: 16px;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: 4px;
+        color: #1e3aeb;
+        text-transform: uppercase;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #1e3aeb;
+        display: inline-block;
+      }
+      .news-title {
+        margin-top: 48px;
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        font-size: 84px;
+        font-weight: 700;
+        line-height: 1.4;
+        color: #1e3aeb;
+        letter-spacing: -1px;
+        flex-shrink: 0;
+        padding-bottom: 8px;
+      }
+      .news-title .highlight {
+        font-style: italic;
+        font-weight: 500;
+        text-decoration: underline;
+        text-decoration-thickness: 3px;
+        text-underline-offset: 10px;
+        display: inline-block;
+        padding: 4px 24px 4px 12px;
+        margin: 0 -12px;
+      }
+      .news-summary {
+        margin-top: 48px;
+        font-size: 50px;
+        line-height: 1.55;
+        color: rgba(30, 58, 235, 0.9);
+        font-weight: 600;
+        font-style: italic;
+        font-family: "Source Han Sans SC", "Noto Sans SC", "思源黑体", "PingFang SC", "Microsoft YaHei", sans-serif;
+        padding-right: 20px;
+        margin-right: -10px;
+      }
+      .company-tags {
+        margin-top: auto;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: flex-start;
+      }
+      .tag {
+        padding: 12px 28px;
+        background: transparent;
+        border: 2px solid #1e3aeb;
+        border-radius: 0;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 26px;
+        color: #1e3aeb;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+      .tag.accent {
+        background: #1e3aeb;
+        color: #f5f0e1;
+      }
+
+      /* ===== Intro Scene ===== */
+      .intro-scene {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 160px 80px 360px;
+      }
+      .intro-meta {
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: 6px;
+        color: #1e3aeb;
+        text-transform: uppercase;
+      }
+      .intro-title {
+        margin-top: 60px;
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        font-size: 160px;
+        font-weight: 700;
+        line-height: 1.05;
+        color: #1e3aeb;
+        letter-spacing: -2px;
+      }
+      .intro-subtitle {
+        margin-top: 48px;
+        font-family: "Source Han Sans SC", "Noto Sans SC", "思源黑体", "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-size: 44px;
+        line-height: 1.5;
+        color: rgba(30, 58, 235, 0.65);
+        font-weight: 400;
+      }
+      .intro-stats {
+        margin-top: 120px;
+        display: flex;
+        gap: 120px;
+      }
+      .intro-stat {
+        text-align: left;
+      }
+      .intro-stat-num {
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        font-size: 160px;
+        font-weight: 700;
+        color: #1e3aeb;
+        line-height: 1;
+        letter-spacing: -4px;
+      }
+      .intro-stat-label {
+        margin-top: 12px;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 28px;
+        color: #1e3aeb;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      /* ===== Outro Scene ===== */
+      .outro-scene {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 160px 80px 360px;
+      }
+      .outro-label {
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 28px;
+        color: #1e3aeb;
+        font-weight: 500;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+      }
+      .outro-title {
+        margin-top: 36px;
+        font-family: "Newsreader", "Source Han Serif SC", serif;
+        font-size: 100px;
+        font-weight: 700;
+        line-height: 1.15;
+        color: #1e3aeb;
+        letter-spacing: -1px;
+      }
+      .outro-points {
+        margin-top: 80px;
+        display: flex;
+        flex-direction: column;
+        gap: 48px;
+      }
+      .outro-point {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+      }
+      .outro-point-num {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        background: #1e3aeb;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "DM Mono", "JetBrains Mono", Consolas, monospace;
+        font-size: 32px;
+        font-weight: 500;
+        color: #f5f0e1;
+      }
+      .outro-point-text {
+        flex: 1;
+        font-size: 40px;
+        line-height: 1.6;
+        color: rgba(30, 58, 235, 0.85);
+        font-weight: 400;
+        font-family: "Source Han Sans SC", "Noto Sans SC", "思源黑体", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      /* Progress bar */
+      .progress-container {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: rgba(30, 58, 235, 0.1);
+        z-index: 100;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #1e3aeb;
+      }
+
+      /* Caption */
+      .caption-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 50px 60px;
+        background: linear-gradient(to top, rgba(245, 240, 225, 0.95) 0%, rgba(245, 240, 225, 0.7) 50%, transparent 100%);
+        border-top: 2px solid #1e3aeb;
+        z-index: 50;
+        min-height: 200px;
+      }
+      .caption-text {
+        font-size: 38px;
+        font-weight: 500;
+        line-height: 1.5;
+        color: #1e3aeb;
+        text-align: center;
+        font-family: "Source Han Sans SC", "Noto Sans SC", "思源黑体", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="cobalt" data-start="0" data-width="1080" data-height="1920" data-duration="{{TOTAL_DURATION}}">
+
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <!-- Cobalt Grid Background -->
+      <div class="bg-paper"></div>
+      <div class="bg-grid"></div>
+      <div class="bg-grid-major"></div>
+      <div class="bg-perspective">
+        <svg width="1080" height="1920" viewBox="0 0 1080 1920" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="fadeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="white" stop-opacity="0.12" />
+              <stop offset="30%" stop-color="white" stop-opacity="0.4" />
+              <stop offset="70%" stop-color="white" stop-opacity="0.85" />
+              <stop offset="100%" stop-color="white" stop-opacity="1" />
+            </linearGradient>
+            <mask id="fadeMask">
+              <rect width="1080" height="1920" fill="url(#fadeGrad)" />
+            </mask>
+          </defs>
+          <g mask="url(#fadeMask)" stroke="rgba(30,58,235,0.38)" stroke-width="1" fill="none" shape-rendering="crispEdges">
+            <!-- Horizontal perspective lines (17 lines) -->
+            <line x1="0" y1="1920" x2="1080" y2="1920" />
+            <line x1="0" y1="1855" x2="1080" y2="1855" />
+            <line x1="0" y1="1784" x2="1080" y2="1784" />
+            <line x1="0" y1="1707" x2="1080" y2="1707" />
+            <line x1="0" y1="1624" x2="1080" y2="1624" />
+            <line x1="0" y1="1535" x2="1080" y2="1535" />
+            <line x1="0" y1="1440" x2="1080" y2="1440" />
+            <line x1="0" y1="1339" x2="1080" y2="1339" />
+            <line x1="0" y1="1232" x2="1080" y2="1232" />
+            <line x1="0" y1="1119" x2="1080" y2="1119" />
+            <line x1="0" y1="1000" x2="1080" y2="1000" />
+            <line x1="0" y1="875" x2="1080" y2="875" />
+            <line x1="0" y1="744" x2="1080" y2="744" />
+            <line x1="0" y1="607" x2="1080" y2="607" />
+            <line x1="0" y1="464" x2="1080" y2="464" />
+            <line x1="0" y1="315" x2="1080" y2="315" />
+            <line x1="0" y1="160" x2="1080" y2="160" />
+            <!-- Converging vertical lines (19 lines, vanishing point at 540,2050) -->
+            <line x1="3362" y1="0" x2="719" y2="1920" />
+            <line x1="2817" y1="0" x2="684" y2="1920" />
+            <line x1="2386" y1="0" x2="657" y2="1920" />
+            <line x1="2029" y1="0" x2="634" y2="1920" />
+            <line x1="1724" y1="0" x2="615" y2="1920" />
+            <line x1="1453" y1="0" x2="598" y2="1920" />
+            <line x1="1206" y1="0" x2="582" y2="1920" />
+            <line x1="976" y1="0" x2="568" y2="1920" />
+            <line x1="756" y1="0" x2="554" y2="1920" />
+            <line x1="540" y1="0" x2="540" y2="1920" />
+            <line x1="325" y1="0" x2="526" y2="1920" />
+            <line x1="104" y1="0" x2="512" y2="1920" />
+            <line x1="-126" y1="0" x2="498" y2="1920" />
+            <line x1="-373" y1="0" x2="482" y2="1920" />
+            <line x1="-644" y1="0" x2="465" y2="1920" />
+            <line x1="-949" y1="0" x2="446" y2="1920" />
+            <line x1="-1306" y1="0" x2="423" y2="1920" />
+            <line x1="-1737" y1="0" x2="396" y2="1920" />
+            <line x1="-2282" y1="0" x2="361" y2="1920" />
+          </g>
+        </svg>
+      </div>
+      <div class="frame-border-top"></div>
+      <div class="frame-border-bottom"></div>
+
+      <!-- Right staircase decoration -->
+      <div class="stair-deco">
+        <div class="stair-line" style="bottom: 0; width: 4px; height: 600px;"></div>
+        <div class="stair-line" style="bottom: 120px; width: 4px; height: 480px; right: 20px;"></div>
+        <div class="stair-line" style="bottom: 240px; width: 4px; height: 560px; right: 40px;"></div>
+        <div class="stair-line" style="bottom: 360px; width: 4px; height: 400px; right: 60px;"></div>
+        <div class="stair-line" style="bottom: 480px; width: 4px; height: 320px; right: 80px;"></div>
+      </div>
+
+      <!-- ============================================= -->
+      <!-- Intro Scene (0-8s)                            -->
+      <!-- ============================================= -->
+      <section id="intro" class="clip scene-wrapper intro-scene" data-start="0" data-duration="8" data-track-index="1">
+        <div class="header-bar">
+          <span>COBALT GRID / AI NEWS</span>
+          <span>VOL.01 — {{DATE}}</span>
+        </div>
+        <div class="intro-meta">{{INTRO_META}}</div>
+        <div class="intro-title">
+          {{INTRO_TITLE_LINE1}}<br>{{INTRO_TITLE_LINE2}}
+        </div>
+        <div class="intro-subtitle">
+          {{INTRO_SUBTITLE}}
+        </div>
+        <div class="intro-stats">
+          <div class="intro-stat">
+            <div class="intro-stat-num">{{NEWS_COUNT}}</div>
+            <div class="intro-stat-label">STORIES</div>
+          </div>
+          <div class="intro-stat">
+            <div class="intro-stat-num">{{READ_TIME}}</div>
+            <div class="intro-stat-label">MIN READ</div>
+          </div>
+        </div>
+        <div class="footer-bar">
+          <span>FRAME SYSTEM — NEWSREADER · HANKEN · DM MONO</span>
+          <span>00 / {{NEWS_COUNT}}</span>
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- NEWS SECTION TEMPLATE — 复制此块添加新闻      -->
+      <!-- 替换所有 {{...}} 占位符                      -->
+      <!-- ============================================= -->
+      <!--
+      <section id="news{{NUMBER}}" class="clip scene-wrapper" data-start="{{START}}" data-duration="12" data-track-index="1">
+        <div class="header-bar">
+          <span>COBALT GRID / AI NEWS</span>
+          <span>{{DATE}}</span>
+        </div>
+        <div class="news-number-large">{{NUMBER_PADDED}}</div>
+        <div class="news-category">{{CATEGORY}} / {{CATEGORY_EN}}</div>
+        <h2 class="news-title">
+          {{TITLE_PART1}}<span class="highlight">{{HIGHLIGHT}}</span>{{TITLE_PART2}}
+        </h2>
+        <p class="news-summary">
+          {{SUMMARY}}
+        </p>
+        <div class="company-tags">
+          <span class="tag accent">{{TAG1}}</span>
+          <span class="tag">{{TAG2}}</span>
+          <span class="tag">{{TAG3}}</span>
+        </div>
+        <div class="footer-bar">
+          <span>FRAME SYSTEM — AI DAILY NEWS</span>
+          <span>{{NUMBER_PADDED}} / {{NEWS_COUNT}}</span>
+        </div>
+      </section>
+      -->
+
+      <!-- ============================================= -->
+      <!-- Outro Scene (last 12s)                        -->
+      <!-- ============================================= -->
+      <section id="outro" class="clip outro-scene" data-start="{{OUTRO_START}}" data-duration="12" data-track-index="1">
+        <div class="header-bar">
+          <span>COBALT GRID / AI NEWS</span>
+          <span>{{DATE}}</span>
+        </div>
+        <div id="outroLabel" class="outro-label">今日趋势点评 / TREND REPORT</div>
+        <h2 id="outroTitle" class="outro-title">三大趋势<br>看懂AI行业</h2>
+        <div id="outroPoints" class="outro-points">
+          <div class="outro-point" id="point1">
+            <div class="outro-point-num">1</div>
+            <div class="outro-point-text">{{TREND_POINT1}}</div>
+          </div>
+          <div class="outro-point" id="point2">
+            <div class="outro-point-num">2</div>
+            <div class="outro-point-text">{{TREND_POINT2}}</div>
+          </div>
+          <div class="outro-point" id="point3">
+            <div class="outro-point-num">3</div>
+            <div class="outro-point-text">{{TREND_POINT3}}</div>
+          </div>
+        </div>
+        <div class="footer-bar">
+          <span>FRAME SYSTEM — AI DAILY NEWS</span>
+          <span>END</span>
+        </div>
+      </section>
+
+      <!-- Caption Overlay -->
+      <div id="captionLayer" class="clip" data-start="0" data-duration="{{TOTAL_DURATION}}" data-track-index="2">
+        <div class="caption-bar">
+          <div id="captionText" class="caption-text">{{CAPTION_DEFAULT}}</div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      gsap.set("#captionText", { x: -5, y: -44 });
+      const tl = gsap.timeline({ paused: true });
+
+      // ======================================
+      // Intro animation (0-8s)
+      // ======================================
+      tl.from("#intro .intro-meta", { opacity: 0, y: -30, duration: 0.8, ease: "power3.out" }, 0.2);
+      tl.from("#intro .intro-title", { opacity: 0, y: 60, duration: 1, ease: "power3.out" }, 0.6);
+      tl.from("#intro .intro-subtitle", { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" }, 1.4);
+      tl.from("#intro .intro-stats", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, 2.0);
+
+      // Intro captions
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_1}}", duration: 0.1 }, 0.5);
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_2}}", duration: 0.1 }, 2.5);
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_3}}", duration: 0.1 }, 5.0);
+
+      // ======================================
+      // NEWS ANIMATION TEMPLATE — 每条新闻复制
+      // ======================================
+      // tl.from("#news{{NUMBER}} .news-number-large", { opacity: 0, x: -40, duration: 0.5, ease: "power3.out" }, {{START}}.2);
+      // tl.from("#news{{NUMBER}} .news-category", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, {{START}}.4);
+      // tl.from("#news{{NUMBER}} .news-title", { opacity: 0, y: 40, duration: 0.7, ease: "power3.out" }, {{START}}.6);
+      // tl.from("#news{{NUMBER}} .news-summary", { opacity: 0, y: 30, duration: 0.7, ease: "power3.out" }, {{START}}.2 + 1.0);
+      // tl.from("#news{{NUMBER}} .company-tags", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, {{START}}.2 + 1.6);
+      // tl.to("#captionText", { text: "{{CAPTION_NEWS_{{NUMBER}}_1}}", duration: 0.1 }, {{START}}.5);
+      // tl.to("#captionText", { text: "{{CAPTION_NEWS_{{NUMBER}}_2}}", duration: 0.1 }, {{START}} + 6.0);
+
+      // ======================================
+      // Outro animation
+      // ======================================
+      tl.from("#outro .outro-label", { opacity: 0, x: -40, duration: 0.5, ease: "power3.out" }, {{OUTRO_START}}.2);
+      tl.from("#outro .outro-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, {{OUTRO_START}}.5);
+      tl.from("#point1", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 1.2);
+      tl.from("#point2", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 1.8);
+      tl.from("#point3", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 2.4);
+      tl.to("#captionText", { text: "{{CAPTION_OUTRO_1}}", duration: 0.1 }, {{OUTRO_START}}.5);
+      tl.to("#captionText", { text: "{{CAPTION_OUTRO_2}}", duration: 0.1 }, {{OUTRO_START}} + 7.0);
+
+      // Progress bar
+      tl.to("#progressBar", { width: "100%", duration: {{TOTAL_DURATION}}, ease: "none" }, 0);
+
+      window.__timelines["cobalt"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "_schema_version": "1.0",
+  "_description": "Cobalt Grid 风格 AI 新闻视频数据格式规范",
+
+  "date": "2026.07.25",
+  "title": "AI行业热点新闻",
+  "intro": {
+    "meta": "AI INDUSTRY DAILY BRIEFING",
+    "titleLine1": "AI Industry",
+    "titleLine2": "Daily News",
+    "subtitle": "2026 年 7 月 25 日 · 15 条精选 · 3 分钟掌握行业脉搏",
+    "captions": [
+      "大家好，欢迎来到今天的AI热点速递",
+      "7月25日，15条精选新闻，3分钟带你看完",
+      "按重要性排序，我们开始吧"
+    ]
+  },
+  "news": [
+    {
+      "number": 1,
+      "category": "产品发布",
+      "categoryEn": "PRODUCT",
+      "titlePart1": "Anthropic 发布 ",
+      "highlight": "Claude Opus 5",
+      "titlePart2": "",
+      "summary": "2026年7月24日，Anthropic 发布 Claude Opus 5。在编码、知识工作、企业分析场景显著优于 Opus 4.8，接近 Fable 5 水平，价格约为 Fable 5 的一半，并提供更快的 Fast mode，同时强调对齐与安全审计改进。",
+      "tags": ["ANTHROPIC", "OPUS 5", "价格减半"],
+      "accentTagIndex": 0,
+      "captions": [
+        "头条，Anthropic发布Claude Opus 5，性能接近Fable 5价格减半",
+        "高端模型的性价比时代正式到来"
+      ]
+    }
+  ],
+  "trendPoints": [
+    "高端模型进入<span style=\"color:#1e3aeb;font-weight:700\">性价比时代</span>，企业不再只看最高分",
+    "AI安全监管<span style=\"color:#1e3aeb;font-weight:700\">急剧升温</span>，从事前评估走向运行中可控",
+    "开源闭源<span style=\"color:#1e3aeb;font-weight:700\">阵营博弈</span>加剧，平衡点尚未找到"
+  ],
+  "outroCaptions": [
+    "今日三大趋势：性价比时代、监管升温、阵营博弈",
+    "关注我，每天掌握AI行业最新动态"
+  ],
+
+  "_field_reference": {
+    "date": "日期格式 YYYY.MM.DD",
+    "title": "视频总标题",
+    "intro.meta": "Intro 页面顶部大写英文标签",
+    "intro.titleLine1/2": "Intro 主标题两行（Newsreader 大字号）",
+    "intro.subtitle": "Intro 副标题（中文小字说明）",
+    "intro.captions": "Intro 阶段 3 条字幕",
+    "news[].number": "新闻序号 1-N",
+    "news[].category/categoryEn": "分类标签 中文/英文",
+    "news[].titlePart1/highlight/titlePart2": "标题三部分，highlight 会用斜体+下划线高亮",
+    "news[].summary": "新闻正文 3-4 行",
+    "news[].tags": "2-4 个标签",
+    "news[].accentTagIndex": "高亮标签索引（0-based）",
+    "news[].captions": "每条新闻 2 条字幕",
+    "trendPoints": "Outro 3 条趋势点评（可内嵌 <span> 样式）",
+    "outroCaptions": "Outro 阶段 2 条字幕"
+  },
+
+  "_time_formula": {
+    "intro_duration": 8,
+    "news_duration": 12,
+    "outro_duration": 12,
+    "total_duration": "8 + N * 12 + 12",
+    "news_start_time": "8 + (i - 1) * 12",
+    "outro_start_time": "8 + N * 12"
+  }
+}
