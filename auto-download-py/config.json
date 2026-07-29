@@ -1,0 +1,349 @@
+{
+    "download_dir": "downloads",
+    "max_workers": 3,
+    "software": [
+        {
+            "name": "微信",
+            "id": "wechat",
+            "type": "fixed_url",
+            "url": "https://dldir1.qq.com/weixin/Windows/WeChatSetup.exe",
+            "filename": "WeChat_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "QQ",
+            "id": "qq",
+            "type": "fixed_url",
+            "url": "https://qqdl.gtimg.cn/qqfile/QQNT/9.9.32/release/9d4083e2/QQ_9.9.32_260716_x64_01.exe",
+            "filename": "QQ_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "钉钉",
+            "id": "dingtalk",
+            "type": "page_parse",
+            "download_page": "https://www.dingtalk.com/download",
+            "link_pattern": "https://dtapp-cast\\.dingtalk\\.com/[^\"'<>\\s]+?/win_installer/Release/DingTalk_v[\\d.]+\\.exe",
+            "filename": "DingTalk_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "飞书",
+            "id": "feishu",
+            "type": "api",
+            "api_url": "https://www.feishu.cn/api/package_info",
+            "params": {
+                "platform": "16"
+            },
+            "link_key": "data.download_link",
+            "version_key": "data.version_number",
+            "filename": "Feishu_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Chrome浏览器",
+            "id": "chrome",
+            "type": "fixed_url",
+            "url": "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B00000000-0000-0000-0000-000000000000%7D%26lang%3Dzh-CN%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-statsdef_1%26installdataindex%3Dempty/update2/installers/ChromeSetup.exe",
+            "filename": "ChromeSetup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Edge浏览器",
+            "id": "edge",
+            "type": "fixed_url",
+            "url": "https://go.microsoft.com/fwlink/?linkid=2099617",
+            "filename": "MicrosoftEdgeSetup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Firefox浏览器",
+            "id": "firefox",
+            "type": "fixed_url",
+            "url": "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=zh-CN",
+            "filename": "FirefoxSetup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Microsoft Office 2021",
+            "id": "office",
+            "type": "fixed_url",
+            "url": "https://officecdn.microsoft.com/db/492350F6-3A01-4F97-B9C0-C7C6DDF67D60/media/zh-cn/ProPlus2021Retail.img",
+            "filename": "Office2021_ProPlus_zh-cn.img",
+            "enabled": true
+        },
+        {
+            "name": "腾讯会议",
+            "id": "tencent_meeting",
+            "type": "fixed_url",
+            "url": "https://updatecdn.meeting.qq.com/cos/a2bf9c01f76b1df44383ab2f529bec13/TencentMeeting_0300000000_3.44.10.457_x86_64.publish.officialwebsite.exe",
+            "filename": "TencentMeeting_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Typora",
+            "id": "typora",
+            "type": "fixed_url",
+            "url": "https://downloads.typoraio.cn/windows/typora-setup-x64.exe",
+            "filename": "Typora_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "SumatraPDF",
+            "id": "sumatrapdf",
+            "type": "fixed_url",
+            "url": "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-64-install.exe",
+            "filename": "SumatraPDF_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Everything",
+            "id": "everything",
+            "type": "fixed_url",
+            "url": "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe",
+            "filename": "Everything_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "讯飞输入法",
+            "id": "xunfei_input",
+            "type": "fixed_url",
+            "url": "https://download.voicecloud.cn/200ime/iFlyIME_Setup_3.0.1750.exe",
+            "filename": "iFlyIME_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "网易云音乐",
+            "id": "netease_cloudmusic",
+            "type": "api",
+            "api_url": "https://music.163.com/api/pc/package/download/latest",
+            "params": {
+                "productName": "music"
+            },
+            "link_key": "data.downloadUrl",
+            "version_key": "data.appVer",
+            "filename": "NetEaseCloudMusic_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "QQ音乐",
+            "id": "qqmusic",
+            "type": "fixed_url",
+            "url": "https://dldir1.qq.com/music/clntupate/QQMusic_Setup.exe",
+            "filename": "QQMusic_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "酷狗音乐",
+            "id": "kugou",
+            "type": "fixed_url",
+            "url": "https://download.kugou.com/dl/kugou_pc",
+            "filename": "KuGou_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "PotPlayer",
+            "id": "potplayer",
+            "type": "fixed_url",
+            "url": "https://t1.daumcdn.net/potplayer/PotPlayer/Version/Latest/PotPlayerSetup64.exe",
+            "filename": "PotPlayerSetup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "剪映",
+            "id": "capcut",
+            "type": "fixed_url",
+            "url": "https://lf3-package.vlabstatic.com/obj/faceu-packages/installer/jianying_jianyingpro_0_1.2.21_installer.exe",
+            "filename": "CapCut_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "OBS Studio",
+            "id": "obs_studio",
+            "type": "fixed_url",
+            "url": "https://cdn-fastly.obsproject.com/downloads/OBS-Studio-32.1.2-Windows-x64-Installer.exe",
+            "filename": "OBS-Studio_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "VSCode",
+            "id": "vscode",
+            "type": "fixed_url",
+            "url": "https://update.code.visualstudio.com/latest/win32-x64-user/stable",
+            "filename": "VSCodeSetup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Notepad++",
+            "id": "notepadpp",
+            "type": "fixed_url",
+            "url": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7/npp.8.7.Installer.x64.exe",
+            "filename": "Notepad++_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "7-Zip",
+            "id": "7zip",
+            "type": "fixed_url",
+            "url": "https://www.7-zip.org/a/7z2409-x64.exe",
+            "filename": "7z_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "CC Switch",
+            "id": "ccswitch",
+            "type": "api",
+            "api_url": "https://api.github.com/repos/farion1231/cc-switch/releases/latest",
+            "asset_name_pattern": "Windows\\.msi",
+            "filename": "CC-Switch_Setup.msi",
+            "enabled": true
+        },
+        {
+            "name": "Steam",
+            "id": "steam",
+            "type": "fixed_url",
+            "url": "https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe",
+            "filename": "Steam_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "TRAE IDE",
+            "id": "trae_ide",
+            "type": "page_parse",
+            "download_page": "https://api.trae.cn/icube/api/v1/native/version/trae/cn/latest",
+            "link_pattern": "https://lf-cdn\\.trae\\.com\\.cn/obj/trae-com-cn/pkg/app/releases/stable/[\\d.]+/win32/Trae_CN-Setup-x64\\.exe",
+            "filename": "TRAE_IDE_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "TRAE Work",
+            "id": "trae_work",
+            "type": "fixed_url",
+            "url": "https://lf-cdn.trae.com.cn/obj/trae-com-cn/pkg/app/releases/stable/2.3.59353/win32/TRAE_Work_CN-Setup-x64.exe",
+            "filename": "TRAE_Work_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "百度网盘",
+            "id": "baidunetdisk",
+            "type": "fixed_url",
+            "url": "https://issuecdn.baidupcs.com/issue/netdisk/yunguanjia/BaiduNetdisk_8.6.3.101.exe",
+            "filename": "BaiduNetdisk_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "豆包",
+            "id": "doubao",
+            "type": "fixed_url",
+            "url": "https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/doubao_pc/2.14.7/Doubao_online_installer_2.14.7.exe",
+            "filename": "Doubao_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "火绒安全",
+            "id": "huorong",
+            "type": "fixed_url",
+            "url": "https://www.huorong.cn/product/downloadHr60.php?pro=hr60",
+            "filename": "Huorong_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Postman",
+            "id": "postman",
+            "type": "fixed_url",
+            "url": "https://dl.pstmn.io/download/latest/win64",
+            "filename": "Postman_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "WorkBuddy",
+            "id": "workbuddy",
+            "type": "api",
+            "api_url": "https://www.codebuddy.cn/v2/update",
+            "params": {
+                "platform": "workbuddy-win32-x64-user"
+            },
+            "link_key": "url",
+            "version_key": "version",
+            "filename": "WorkBuddy_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "CodeBuddy IDE",
+            "id": "codebuddy_ide",
+            "type": "api",
+            "api_url": "https://www.codebuddy.cn/v2/update",
+            "params": {
+                "platform": "ide-win32-x64-user"
+            },
+            "link_key": "url",
+            "version_key": "version",
+            "filename": "CodeBuddy_IDE_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Apifox",
+            "id": "apifox",
+            "type": "fixed_url",
+            "url": "https://file-assets.apifox.com/download/Apifox-windows-latest.zip",
+            "filename": "Apifox_windows-latest.zip",
+            "enabled": true
+        },
+        {
+            "name": "向日葵远程",
+            "id": "sunlogin",
+            "type": "fixed_url",
+            "url": "https://dl.oray.com/sl/windows/AweSun_v16.5.0.30905_x64.exe",
+            "filename": "SunloginClient_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Bandizip",
+            "id": "bandizip",
+            "type": "fixed_url",
+            "url": "https://cdn.bandisoft.com/bandizip/BANDIZIP-SETUP.EXE",
+            "filename": "Bandizip_Setup.exe",
+            "enabled": true
+        },
+        {
+            "name": "Git",
+            "id": "git",
+            "type": "fixed_url",
+            "url": "https://registry.npmmirror.com/-/binary/git-for-windows/v2.45.0.windows.1/Git-2.45.0-64-bit.exe",
+            "filename": "Git_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Sublime Text",
+            "id": "sublime_text",
+            "type": "fixed_url",
+            "url": "https://download.sublimetext.com/sublime_text_build_4152_x64_setup.exe",
+            "filename": "SublimeText_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "XMind",
+            "id": "xmind",
+            "type": "fixed_url",
+            "url": "https://www.xmind.cn/zen/download/",
+            "filename": "XMind_Setup_x64.exe",
+            "enabled": true
+        },
+        {
+            "name": "Docker Desktop",
+            "id": "docker_desktop",
+            "type": "fixed_url",
+            "url": "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe",
+            "filename": "Docker_Desktop_Installer.exe",
+            "enabled": true
+        },
+        {
+            "name": "迅雷",
+            "id": "xunlei",
+            "type": "fixed_url",
+            "url": "https://down.sandai.net/thunder11/XunLeiWebSetup12.4.12.4000xl11.exe",
+            "filename": "XunLei_Setup.exe",
+            "enabled": true
+        }
+    ]
+}
