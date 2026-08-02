@@ -8,11 +8,11 @@
     "meta": "AI INDUSTRY DAILY BRIEFING",
     "titleLine1": "AI Industry",
     "titleLine2": "Daily News",
-    "subtitle": "2026 年 7 月 25 日 · 15 条精选 · 3 分钟掌握行业脉搏",
+    "subtitle": "2026 年 8 月 1 日 · 15 条精选 · 3 分 05 秒掌握行业脉搏",
     "captions": [
-      "大家好，欢迎来到今天的AI热点速递",
-      "7月25日，15条精选新闻，3分钟带你看完",
-      "按重要性排序，我们开始吧"
+      "欢迎来到AI速递",
+      "今天是8月1日，15条新闻",
+      "下面给大家详细介绍"
     ]
   },
   "news": [
@@ -39,7 +39,7 @@
   ],
   "outroCaptions": [
     "今日三大趋势：性价比时代、监管升温、阵营博弈",
-    "关注我，每天掌握AI行业最新动态"
+    "今天资讯播放完了，下期见"
   ],
 
   "_field_reference": {
@@ -62,10 +62,28 @@
 
   "_time_formula": {
     "intro_duration": 8,
-    "news_duration": 12,
+    "news_duration": 11,
     "outro_duration": 12,
-    "total_duration": "8 + N * 12 + 12",
-    "news_start_time": "8 + (i - 1) * 12",
-    "outro_start_time": "8 + N * 12"
+    "total_duration": "8 + N * 11 + 12",
+    "news_start_time": "8 + (i - 1) * 11",
+    "outro_start_time": "8 + N * 11"
+  },
+
+  "_audio_timing": {
+    "voice": "zh-CN-YunyangNeural",
+    "rate": "+12%",
+    "target_cps": "约 4.5-5 字/秒（汉字=1，字母/数字=0.5 加权）",
+    "lead_in": "每条新闻/结尾：字幕1 = 段首 + 0.35s",
+    "breath": "字幕2 = 字幕1 语音结束 + 0.28s；开场句间 0.25s",
+    "tail_max": "段尾展示余量 ≤ 1.5s",
+    "speed_cap": "段内均匀变速上限 1.18x（优先用 TTS rate，通常为 1.0x）"
+  },
+
+  "_outputs": {
+    "timeline.json": "音频驱动时间轴（脚本生成，SRT/HTML/MP3 唯一时间源）",
+    "subtitles.srt": "35 条字幕，与视频字幕、口播音频完全同步",
+    "voiceover.mp3": "口播音频（edge-tts + ffmpeg 拼接，总时长=视频时长）",
+    "index-cobalt.html": "HyperFrames 构图",
+    "renders": "ai-news-YYYYMMDD-cobalt.mp4 与合流口播的 narrated 版"
   }
 }

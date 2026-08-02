@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/TextPlugin.min.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -547,6 +548,7 @@
     <script>
       window.__timelines = window.__timelines || {};
       gsap.set("#captionText", { x: -5, y: -44 });
+      gsap.registerPlugin(TextPlugin);
       const tl = gsap.timeline({ paused: true });
 
       // ======================================
@@ -558,9 +560,9 @@
       tl.from("#intro .intro-stats", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, 2.0);
 
       // Intro captions
-      tl.to("#captionText", { text: "{{CAPTION_INTRO_1}}", duration: 0.1 }, 0.5);
-      tl.to("#captionText", { text: "{{CAPTION_INTRO_2}}", duration: 0.1 }, 2.5);
-      tl.to("#captionText", { text: "{{CAPTION_INTRO_3}}", duration: 0.1 }, 5.0);
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_1}}", duration: 0.1 }, {{CAPTION_INTRO_TIME_1}});
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_2}}", duration: 0.1 }, {{CAPTION_INTRO_TIME_2}});
+      tl.to("#captionText", { text: "{{CAPTION_INTRO_3}}", duration: 0.1 }, {{CAPTION_INTRO_TIME_3}});
 
       // ======================================
       // NEWS ANIMATION TEMPLATE — 每条新闻复制
@@ -581,8 +583,8 @@
       tl.from("#point1", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 1.2);
       tl.from("#point2", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 1.8);
       tl.from("#point3", { opacity: 0, x: -40, duration: 0.6, ease: "power3.out" }, {{OUTRO_START}} + 2.4);
-      tl.to("#captionText", { text: "{{CAPTION_OUTRO_1}}", duration: 0.1 }, {{OUTRO_START}}.5);
-      tl.to("#captionText", { text: "{{CAPTION_OUTRO_2}}", duration: 0.1 }, {{OUTRO_START}} + 7.0);
+      tl.to("#captionText", { text: "{{CAPTION_OUTRO_1}}", duration: 0.1 }, {{CAPTION_OUTRO_TIME_1}});
+      tl.to("#captionText", { text: "{{CAPTION_OUTRO_2}}", duration: 0.1 }, {{CAPTION_OUTRO_TIME_2}});
 
       // Progress bar
       tl.to("#progressBar", { width: "100%", duration: {{TOTAL_DURATION}}, ease: "none" }, 0);
