@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI新闻博客改写"
+  short_description: "把AI新闻改写成大模型API中转站系列博客文章，输出Markdown"
+  default_prompt: "使用 $ai-news-blog-rewriter 把今日AI新闻改写成符合博客发文规范的系列文章。"
