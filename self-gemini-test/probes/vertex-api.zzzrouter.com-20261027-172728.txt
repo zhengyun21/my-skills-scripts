@@ -1,0 +1,1902 @@
+############ 渠道总览 ############
+目标: https://api.zzzrouter.com  time=2026-10-27 17:27:28
+计划测试: 2 个模型, 并发=3, 采样=12
+
+— model_sweep（渠道级探活）—
+  gemini-3.7-flash             | HTTP200 回报model=gemini-3.7-flash
+  gemini-4-argon               | HTTP200 回报model=gemini-4-argon
+
+==============================================================================
+############ 探针组 —— gemini-3.7-flash ############
+— native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-3.7-flash trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=63
+— nonce: 3/3 MATCH MATCH MATCH
+— fields: ok=12/12 trafficType=12 serviceTier=0 createTime=12 budget0违规=6 promptToken分布={2: 12} modelVersion={'gemini-3.7-flash': 12}
+— tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+— grounding: groundingChunks=2 webSearchQueries=['who is current CEO of Google']
+— capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+— native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowy wit') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name":"Wang Lei","age":36,"job":"pilot","city":"') | stream=OK(3ch) | multiturn=OK('doudou') | thoughtSignature=present
+— effort: none=None(HTTP400) | low=46(HTTP200) | high=211(HTTP200)
+— params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+— roundtrip: OK('It is currently snowing in Oslo with a t')
+— errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group G | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102709283011035449
+
+==============================================================================
+############ 探针组 —— gemini-4-argon ############
+— native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+— nonce: 2/3 MISMATCH('') MATCH MATCH
+— fields: ok=0/12 trafficType=12 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+— tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+— grounding: HTTP-1
+— capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+— native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snow with') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=INCONCLUSIVE(HTTP-1, 0ch) | multiturn=OK('doudou.') | thoughtSignature=present
+— effort: none=0(HTTP200) | low=0(HTTP200) | high=84(HTTP200)
+— params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP429 {"error": {"message": "Resource has been exhausted (e.g. check quota).", "type":
+— roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+— errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group G | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102709335309902684
+
+==============================================================================
+############ 分层判读 (VERDICT) —— gemini-3.7-flash ############
+⓪ 交付判定   : 🔴【交付缺陷 x1】—— 以下请求-响应不对应:
+             ⟹ thinkingBudget=0 被无视 6/12 —— 关思考请求被上游忽略（依据: 请求了 thinkingBudget:0 但响应仍含 thoughtsTokenCount），你为不想要的思考 token 付费
+⓪b 原生交付判定: 🟢【原生端点交付合格】—— 原生 generateContent 基础能力未发现静默改写
+① 渠道判源   : 【Vertex（GCS 直连能力实证）】  置信度 high
+             ├ gs_real_image=READ_OK('Blueberry scones') （GCS直读能力实证, Developer API 架构上不具备 → +6 A类）
+             ├ gs_fake=generic(HTTP500) （无 RegisterFile 拒绝 = 缺 Developer API 标志行为 → +3 B类）
+             ├ files_uri=通用IAM403 （无 Files 服务语义 → +2 B类）
+             ├ https_404=URL_ERROR_status （v3审计: 非Vertex独占, 中性观测 → 不计分）
+             ├ gs_missing_obj=GCS原生404文本 （拉取到达真实 GCS → +2 B类）
+             ├ tools_proto=无Vertex独占字段 （请求侧非 Vertex 原生；若存在 Developer API 形状转换层则只反映转换层 → +2 C类计入 devapi）
+             ├ field_family=trafficType族(tt=12/12,st=0/12,ct=12/12) （族划分观察）
+             ├ fields_proto=vertex_shape （trafficType+createTime 仅 Vertex proto 定义, 官方一手核验 → +4 A类）
+             ├ score: vertex=17 devapi=2
+② 探针明细   :
+             ├ native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-3.7-flash trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=63
+             ├ fields: ok=12/12 trafficType=12 serviceTier=0 createTime=12 budget0违规=6 promptToken分布={2: 12} modelVersion={'gemini-3.7-flash': 12}
+             ├ tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+             ├ grounding: groundingChunks=2 webSearchQueries=['who is current CEO of Google']
+             ├ capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+             ├ native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowy wit') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name":"Wang Lei","age":36,"job":"pilot","city":"') | stream=OK(3ch) | multiturn=OK('doudou') | thoughtSignature=present
+             ├ effort: none=None(HTTP400) | low=46(HTTP200) | high=211(HTTP200)
+             ├ params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+             ├ roundtrip: OK('It is currently snowing in Oslo with a t')
+             ├ errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group G | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102709335309902684
+③ 证据-依据对照:
+             ├ files_uri=generic_403  [B类 w=2]
+             │   依据: 通用 IAM 403 而非 Files 注册表错误 —— 上游无 Files 服务语义（依据: 与 8 个已证实 Developer API 渠道的专属错误文本不同族）
+             ├ gs_fake=generic(HTTP500)  [B类 w=3]
+             │   依据: 假桶返回通用错误而非 RegisterFile 拒绝 —— 缺少 Developer API 标志行为，疑似具备 GCS 直读路径（依据: 错误文本 '{"error": {"message": "Internal error encountered.", "type": "upstream_error", "'）
+             ├ gs_missing_obj=gcs_native_404  [B类 w=3]
+             │   依据: 真桶缺对象返回 GCS 原生 'No such object' 文本 —— 拉取请求到达了真实 GCS（依据: 'No such object: bucket/object' 为 GCS XML API 标准错误）
+             ├ field_family=trafficType族(tt=12/12,st=0/12,ct=12/12)  [B类 w=1]
+             │   依据: 族划分观察。官方proto一手核验(2026-10-10): traffic_type=8/create_time=12 仅定义于 Vertex proto, generativelanguage v1beta/v1alpha 均无; serviceTier/turnToken 两边 proto 均无 -> 不可归因仅记录
+             ├ fields_proto=vertex_shape(tt=12/12,ct=12/12)  [A类 w=4]
+             │   依据: 响应稳定携带 trafficType+createTime —— 官方 proto 中二者仅 Vertex 侧定义(traffic_type=8, create_time=12; generativelanguage v1beta/v1alpha 无)。字段证据指向 Vertex; 若行为证据指向 Developer API 则构成冲突 -> 判'无法定案'不强行归因（可能为 Vertex 后端+DeveloperAPI 语义文件层的混合内部通道, 未证实）
+             ├ gs_real_image=READ_OK('Blueberry scones')  [A类 w=6]
+             │   依据: 上游真实拉取并理解了 GCS 公开对象 —— GCS 直读能力实证（依据: Developer API 架构上不支持裸 gs:// 直读，需 Files 注册；此能力仅 Vertex 原生具备。真图+正确描述无法靠改字段伪造）
+             ├ grounding=real(2 chunks)  [B类 w=1]
+             │   依据: 搜索 grounding 真实可用（依据: 返回了 webSearchQueries+groundingChunks 引用元数据）
+             ├ https_404=URL_ERROR_status  [观测类 w=0]
+             │   依据: URL_ERROR-* 状态族（v3审计修正: AI Studio 行为渠道 uqapi 也出现此状态族 → 非 Vertex 独占, 疑似 generativelanguage URL 抓取器词汇 → 降级为中性观测, 不计分）
+             ├ tools_proto=no_vertex_fields(strict)  [B类 w=2]
+             │   依据: 上游 proto 不含 Vertex 独占工具字段（vertexAiSearch/vertexRagStore 均 Cannot find field，对照 zzFakeTool 同样被严格拒绝 —— 说明 tools[] 被原样透传给真实 proto 解析）—— 请求侧判定: 非 Vertex 原生（依据: vertexAiSearch/vertexRagStore 为 Vertex GenerateContentRequest 独占字段；但注意若链上存在 Developer API 形状的转换层，此判据只反映转换层）
+             ├ tools_knownset=pre_filesearch  [B类 w=1]
+             │   依据: 认知集含 urlContext/googleMaps 但不含 fileSearch —— 上游 API 版本介于两者之间（依据: 三者为 Developer API 按时间先后加入的字段）
+             ├ error_leak=distributor  [B类 w=1]
+             │   依据: 渠道自述从上级分销商(distributor)进货 —— 链路存在中间层（依据: 错误文案自带标记）
+
+==============================================================================
+############ 分层判读 (VERDICT) —— gemini-4-argon ############
+⓪ 交付判定   : 🔴【交付缺陷 x2】—— 以下请求-响应不对应:
+             ⟹ nonce 一致性 2/3 —— 存在响应串扰/缓存重放/空响应嫌疑（依据: 回复内容与请求内唯一随机数不对应）
+             ⟹ google_search 工具请求失败 HTTP-1
+⓪b 原生交付判定: 🟢【原生端点交付合格】—— 原生 generateContent 基础能力未发现静默改写
+① 渠道判源   : 【Vertex（GCS 直连能力实证）】  置信度 high
+             ├ gs_real_image=READ_OK('Blueberry scones and fresh blu') （GCS直读能力实证, Developer API 架构上不具备 → +6 A类）
+             ├ gs_fake=generic(HTTP500) （无 RegisterFile 拒绝 = 缺 Developer API 标志行为 → +3 B类）
+             ├ files_uri=通用IAM403 （无 Files 服务语义 → +2 B类）
+             ├ gs_missing_obj=GCS原生404文本 （拉取到达真实 GCS → +2 B类）
+             ├ tools_proto=无Vertex独占字段 （请求侧非 Vertex 原生；若存在 Developer API 形状转换层则只反映转换层 → +2 C类计入 devapi）
+             ├ field_family=trafficType族(tt=12/12,st=0/12,ct=0/12) （族划分观察）
+             ├ score: vertex=13 devapi=2
+② 探针明细   :
+             ├ native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+             ├ fields: ok=0/12 trafficType=12 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+             ├ tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+             ├ grounding: HTTP-1
+             ├ capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+             ├ native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snow with') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=INCONCLUSIVE(HTTP-1, 0ch) | multiturn=OK('doudou.') | thoughtSignature=present
+             ├ effort: none=0(HTTP200) | low=0(HTTP200) | high=84(HTTP200)
+             ├ params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP429 {"error": {"message": "Resource has been exhausted (e.g. check quota).", "type":
+             ├ roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+             ├ errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group G | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102709335309902684
+③ 证据-依据对照:
+             ├ files_uri=generic_403  [B类 w=2]
+             │   依据: 通用 IAM 403 而非 Files 注册表错误 —— 上游无 Files 服务语义（依据: 与 8 个已证实 Developer API 渠道的专属错误文本不同族）
+             ├ field_family=trafficType族(tt=12/12,st=0/12,ct=0/12)  [B类 w=1]
+             │   依据: 族划分观察。官方proto一手核验(2026-10-10): traffic_type=8/create_time=12 仅定义于 Vertex proto, generativelanguage v1beta/v1alpha 均无; serviceTier/turnToken 两边 proto 均无 -> 不可归因仅记录
+             ├ gs_fake=generic(HTTP500)  [B类 w=3]
+             │   依据: 假桶返回通用错误而非 RegisterFile 拒绝 —— 缺少 Developer API 标志行为，疑似具备 GCS 直读路径（依据: 错误文本 '{"error": {"message": "Internal error encountered.", "type": "upstream_error", "'）
+             ├ gs_missing_obj=gcs_native_404  [B类 w=3]
+             │   依据: 真桶缺对象返回 GCS 原生 'No such object' 文本 —— 拉取请求到达了真实 GCS（依据: 'No such object: bucket/object' 为 GCS XML API 标准错误）
+             ├ gs_real_image=READ_OK('Blueberry scones and fresh blu')  [A类 w=6]
+             │   依据: 上游真实拉取并理解了 GCS 公开对象 —— GCS 直读能力实证（依据: Developer API 架构上不支持裸 gs:// 直读，需 Files 注册；此能力仅 Vertex 原生具备。真图+正确描述无法靠改字段伪造）
+             ├ tools_proto=no_vertex_fields(strict)  [B类 w=2]
+             │   依据: 上游 proto 不含 Vertex 独占工具字段（vertexAiSearch/vertexRagStore 均 Cannot find field，对照 zzFakeTool 同样被严格拒绝 —— 说明 tools[] 被原样透传给真实 proto 解析）—— 请求侧判定: 非 Vertex 原生（依据: vertexAiSearch/vertexRagStore 为 Vertex GenerateContentRequest 独占字段；但注意若链上存在 Developer API 形状的转换层，此判据只反映转换层）
+             ├ tools_knownset=pre_filesearch  [B类 w=1]
+             │   依据: 认知集含 urlContext/googleMaps 但不含 fileSearch —— 上游 API 版本介于两者之间（依据: 三者为 Developer API 按时间先后加入的字段）
+             ├ error_leak=distributor  [B类 w=1]
+             │   依据: 渠道自述从上级分销商(distributor)进货 —— 链路存在中间层（依据: 错误文案自带标记）
+
+==============================================================================
+############ 原始请求响应报文 (共100条) ############
+--- RAW#001 [sweep:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Reply with exactly: PONG"}]}
+<<< RESP: {"id":"chatcmpl-202610270927295333868578268d9d672kdtmKL","model":"gemini-3.7-flash","object":"chat.completion","created":1793093251,"choices":[{"index":0,"message":{"role":"assistant","content":"PONG"},"finish_reason":"stop"}],"usage":{"prompt_tokens":6,"completion_tokens":96,"total_tokens":102,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":6,"toolUsePromptTokenCount":0,"candidatesTokenCount":2,"totalTokenCount":102,"thoughtsTokenCount":94,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":6}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":2}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":6,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":2,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":94},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#002 [sweep:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly: PONG"}]}
+<<< RESP: {"id":"chatcmpl-202610270927295279156928268d9d6J76Rohp6","model":"gemini-4-argon","object":"chat.completion","created":1793093252,"choices":[{"index":0,"message":{"role":"assistant","content":"PONG"},"finish_reason":"stop"}],"usage":{"prompt_tokens":37,"completion_tokens":6,"total_tokens":43,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":37,"toolUsePromptTokenCount":0,"candidatesTokenCount":6,"totalTokenCount":43,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":37}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":6}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":37,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":6,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#003 [native:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a19r7AKodWWRxEomiSZuIXr3zdbYv0qia6qEaRoovSNPd59Qj2SNR6ZzUDBXPIdlUREJSYwIvLltKTrHXpODig0aeOGyU95jdi6GsebSlhwjZZJm2ng/6voJK6Npq8+Pw5xZztU3M80Ag2TQGrQwX6qTQQTpeZEA2VlQ//PUg59co45IGN2T+KZn7sEZZIwTjHFiPDtS7pyOLtCtkfdJ1fxMAsVApKJ8wq09j5e7eZ/Kw+GvsQE0suiviBqDb4CFUGpMxlCbVwqmH5J/Voa3WXHGIunSw4YUxpDWbawEh0U141Ufn68HuD4ZsVrlTjB1ywQoh6gqThsJm82gKY0FH1XL+bKBfnyGC6ZEJCiVRP/aUfWO46oaZHjqBz1aOQeJ5bDh4a7NTYRk1WjR94JfGHnkvA15S6d4KO+JOPdFz8TTVB1iJPS3kz4u"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 66,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 63
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:34.927135Z",
+  "responseId": "hm7gap_LOISBhcIPtrqyuAE"
+}
+
+
+--- RAW#004 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1+JihTYZ/DQUJZ4GtDBKGSea3XRvPB8XuPu3xwty9ywGE23HtZzYYREzwW9V6lVOCxT027pryN4jZlmjCI6Y5kzScovSUHMcF+Dvaf1uV2eZVES"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:38.577213Z",
+  "responseId": "im7gar2dI--Wl7oPm7-yoAw"
+}
+
+
+--- RAW#005 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1+iyxnrIyyQYquUZWVXzi5gbPpgb+hiDtW14LgfMJTkyDneNI5mFKYEUZVHwWT2g3UCbPjjUxyOlRlcpHLINrDd8f9k3tcPoyAojz7cFOqWAScgQyUP4gQhI91GMN1OPCCO0X5nsZpIp4GEG1EeZal44J8i7GdJ+TAVTV9vH7YNxXH8uviPwbRHAtJ8eP5hpPveEaNaX1m3JUYn19G56xw16InlupC+yS+J5/uzv5MzyswX53P3LKDJZXHjfzM01lHUaVqvz2xZIiGIjOFGGIhdO6lI2EJD8wfZKSC249S85DKprDBBxozyd4f6xPupTJDbwmxCxRdhYJWXG7ZDn3A6Lu+usdphXYIgDjSm804="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 52,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 49
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:37.969311Z",
+  "responseId": "iW7gat-UO-KKl7oP-8PZ8Q0"
+}
+
+
+--- RAW#006 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a19c8kg/e0DlcRdQLJ2azju7e0qfSelpX3ru2h9wInKecvc4RW8g11B0XzUXc8x7vGjoVat6YAJdPYhy50iuvRQjVvfpsZskcnspEzhrsKBMIGyi"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:38.735352Z",
+  "responseId": "im7gavjwLNGbotQP98jD8Ag"
+}
+
+
+--- RAW#007 [probeB:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 403 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://generativelanguage.googleapis.com/v1beta/files/probe-fake-123", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"The caller does not have permission","type":"upstream_error","param":"","code":403}}
+
+--- RAW#008 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a190T7lxBMKKV97XKSL7MBN5ZJyKmUf4HtYdUwbF3oFWrR5RIOSj3z5l0lHws4TY0LYtdZLgYyXC3JeqB1Znx/ufo41Q+h1vIughbU6M/b8kqDz8nYHQ4wBguHOHm/UxESVHSui56GZHhV47UbUBKjB1s6T59NTzneeUVzFiTF82n6io+0dEC0OwKGjhn7erOHM81d3WauKhYlzYqRDQa+8IFuOx2l9MTC5fuCy/H+rkuvHVxvWyGOKwyHtHxGsWSxVBDAWOgeXO1MqM233CfezKomyagZFqyhhPntnQH38wFEGU52KOOyDUjYzjti2sOAeHoHAUttwZYXl9I2Fa5mp93zBU5YWgc/lm"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 51,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 48
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:38.702862Z",
+  "responseId": "im7gao7zKr67vdIPjPaF2AQ"
+}
+
+
+--- RAW#009 [nonce:gemini-3.7-flash#1] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: a6e0e7f6d688987e"}]}
+<<< RESP: {"id":"chatcmpl-202610270927384871186058268d9d6p0PD1LKl","model":"gemini-3.7-flash","object":"chat.completion","created":1793093261,"choices":[{"index":0,"message":{"role":"assistant","content":"a6e0e7f6d688987e"},"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":106,"total_tokens":131,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":25,"toolUsePromptTokenCount":0,"candidatesTokenCount":16,"totalTokenCount":131,"thoughtsTokenCount":90,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":25}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":16}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":25,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":16,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":90},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#010 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a19Z7N/W6BCGhsqDyEw9qd+OW7hP4D20vocgYcABcKsGmkP9j/OxAFS61DNe/0c2Nh/TfPjtwiuWyvdlld1hXbmU4H8y+zaG45w9KRZZvv5LdOUx"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:40.939835Z",
+  "responseId": "jG7garuuOe6fl7oP4cCk0AQ"
+}
+
+
+--- RAW#011 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a191Are55pc3edJUtAli5TzENjHuLQswP3LbveobaK+GFxMwGPl4NP98h8GIkx0q7x+NtnIB3xvPcUXolS7C57yugKGkaP042EMej5iYFdY2fdJd2VMi1PF3KmPxswRcCVxTGyvZVe1iDI9l3qD4/yZpOKhjtpIVBPWK+VT5NHEif6fTwGihHcdbuIt3ZepaINmWmBGnjRsX3uMcakmKFvsi7UPEr/6DKGfPGGBcBqGIVRGLL8b480NHnLLJJhp6SXZIKJQGmM82+mNgX7fm687dvVHZNuQSs2k0sREvPjRp87vPjFQfyAIHvs+wdgS5q2evMvOz6I+Wq9ti5rR0RBjpavDgFbVJpBCusPTNksY3A+zkl57Qe4Od12ux8Vcd4S4HHZjriSsAoyhlB3vPoO8="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 62,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 59
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:37.984166Z",
+  "responseId": "iW7gauaIPLuYotQPjNSQsQw"
+}
+
+
+--- RAW#012 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a18MvB9I3ZJcJjWbuZ1sk54RCCe1iDfmIGHdAyluHQjQakxRqtr1zOnYoxLqSdHpv+ZrdSy80CVE8ebG7FQ4FvlCajJtuvbN7DJZGYzcR8VN2ge3tN7OXPpV2Edb3jRhcrckzFZ+7hrXEPj0no/xXSvYuhzWrB+7iCtjSaf8TosXtD73n1HRrqYgTChfM5IYLJNa1QTSPWj2PpXZz7aMqRAQwk88D8jEr65FSzX3zPDAv8gOrlgxnlrt9IYa1UF1QPrlaxqqhx/piX7WdAUq2wPSmmqnhmRq4BLZBXPTho9qGqt0c82iU7MGXFsCsw46OwT4P3b1RzgCbXuqvy9wxU8/hgn2RgJLNLqBLlJ18g=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 53,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 50
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:41.358965Z",
+  "responseId": "jW7garX0FdabotQPyd3fuAw"
+}
+
+
+--- RAW#013 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a19+UaTWZJ4u+tD3AMkrmxNhKPlReoJU88edSjhRDhC4zClIplUMqrkIc3/xZ4N/Lzb0qnmMItT820LLAhVbHt6DHmdykjIyI6wr8bocO5vr2Jva"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:40.743137Z",
+  "responseId": "jG7gauGtLYrN1PIP7ebOqAQ"
+}
+
+
+--- RAW#014 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1/T7fA0MMJdNxFwmj19ojgha8o72+yi9GNxhIirhg3qkG1EkewdCD1eVzFzQcYCHggctaiSpKavSKLDGcQL8icQ/o5zF3zSk8+E/uN8dLHLVSgK"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:41.863043Z",
+  "responseId": "jW7gasPWNKSEsbwPpNqD-Q0"
+}
+
+
+--- RAW#015 [nonce:gemini-3.7-flash#2] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 636fa71b5b72febc"}]}
+<<< RESP: {"id":"chatcmpl-202610270927421196378618268d9d6nFftp4Ah","model":"gemini-3.7-flash","object":"chat.completion","created":1793093265,"choices":[{"index":0,"message":{"role":"assistant","content":"636fa71b5b72febc"},"finish_reason":"stop"}],"usage":{"prompt_tokens":23,"completion_tokens":51,"total_tokens":74,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":23,"toolUsePromptTokenCount":0,"candidatesTokenCount":13,"totalTokenCount":74,"thoughtsTokenCount":38,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":23}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":13}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":23,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":13,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":38},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#016 [probeC1:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 500 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://probe-fake-bucket-xyz/img.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"Internal error encountered.","type":"upstream_error","param":"","code":500}}
+
+--- RAW#017 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a184CDHCvUOV/yONo9CsZBX6mdA5rMVHMiC2XHLtu1746Ce/VFiN4f3OBejfPemTzG3R7X90WsKCzQBBj40I4kRPPiIUBhRJ+5s7X5myreB2F29r"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 3,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:44.725873Z",
+  "responseId": "kG7gavGmLIr_x_APzZ3JqQU"
+}
+
+
+--- RAW#018 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a19XFmuMWI12fhk3Qv4H7PQV0yVJYRXVuTbLKvFAVwwnofUkocbFbK7u/ohbQztGOdDZZdADUzcRRHwxVEscd6RsGDudlIVFaIeyrVMNe/TMATjqoO07Pwbk8Klb7u/Q/x5agqVpRBO3Lp+2RZe4xgYjaVODe6BNBHEgWqXWs7skMbPjWZQH/p4UmryyaKRhOsDSt6vLAhDxv/M1HrRh5V4r9+5ufu0zx2qPGmgL3ZW1utH/lDggM4+d5BvMumNvJ0d+scaztlUcxJVEe8ZTc55IVAcYf3g0Q8ZSGUrBrDh56INkeDeKEeqjS+uY/kddDcwsXDXcSAZg0bZlTcu4iPDhFLlokybkNrx8CtVrKOuiT6WGR84="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 55,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 52
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:43.704116Z",
+  "responseId": "j27gavT8Kr67vdIPjPaF2AQ"
+}
+
+
+--- RAW#019 [nonce:gemini-3.7-flash#3] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 2a383933a9b8e12b"}]}
+<<< RESP: {"id":"chatcmpl-202610270927457714946158268d9d66JXZ8TIB","model":"gemini-3.7-flash","object":"chat.completion","created":1793093269,"choices":[{"index":0,"message":{"role":"assistant","content":"2a383933a9b8e12b"},"finish_reason":"stop"}],"usage":{"prompt_tokens":26,"completion_tokens":148,"total_tokens":174,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":26,"toolUsePromptTokenCount":0,"candidatesTokenCount":16,"totalTokenCount":174,"thoughtsTokenCount":132,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":26}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":16}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":26,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":16,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":132},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#020 [tools:gemini-3.7-flash:vertexAiSearch] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexAiSearch": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"vertexAiSearch\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#021 [probeC2:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 404 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg", "mimeType": "image/jpeg"}}]}]}
+<<< RESP: {"error":{"message":"No such object: cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg","type":"upstream_error","param":"","code":404}}
+
+--- RAW#022 [fields:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1+kFFz/IgMSqbDwh/TV9M+fUzx0jJcRcZMooBDTJdPMFeniOmUB6N3OS0FR2MRMIbvvS1BWUs4/oHHT5YwDvIG6ni1E69y10SzQ2AEBQbyEaPpMUoTeQu0J6i4ED5VLxvkLuYTCykeGg7QI9nlrgna6lT565Bd/7aWlJM8+R6RBL8Gx/dMGEUkfEbbQtWg/EA93qH95ZaMUsx9p0m0AbCMkP5IMgImMppyFOrFuipCBzkdVqDqdk6EY7XRaJw86nTfZuC5AquJQpwl5SxfYSS3aGL2eBBJe3vm97b7qbSoUdtaFtr5PPFQGHmM9KZamSKpNdcAHDnNjJqq73va8oD+djHaKh1Nq3ckUCLMhyBJGZTxnucS36vR9N884FdmGvOkqO4zE+vzIP79JfTi8+XfR5G1ifTRo0oaFsLXF+VqUHqRzNmZ0"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 64,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 61
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:48.197740Z",
+  "responseId": "lG7gauyIDNyxl7oP88bFmAw"
+}
+
+
+--- RAW#023 [tools:gemini-3.7-flash:vertexRagStore] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexRagStore": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"vertexRagStore\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#024 [probeC3:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/scones.jpg", "mimeType": "image/jpeg"}}, {"text": "What food is in this image? One short phrase."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Blueberry scones",
+            "thoughtSignature": "AY89a19xYMK16OM4T/wWxVEi0YE6H2mBIgUA3P5IqeYL987aW79zSuYjIQuKA4YhXyhJ96ePSjWvb6j81Aj1aTUrNGiSlao5JkyWQwOpNP+WlKNB7Uq4cBvXfU/iwj2n74mjPQ/JAt8c+6njHc187d9YC4vCbibPdf75UjAnThOglmdqt5DEbS/LWusukwzYmnkKY0cRFzBhbUC1LCxn4UyUKEWkpU9DcN/4yYf5FZ4EfZp/jbiA5mlc+DiUK05so9rHTD9X3WtuVdDIZRQqExXELq7AbMPiMWHCvmHt1sssQdUyH+17HXQYSz9+ge0ex5/29ur/nPIy237d1UaU2+wUpUPB708SO6pPWvS6uhGAIu8Mjc1aEIm0xheGGWhkXxW7X+qtFrOrFlYRqYGk5v2EnAn44Iell9o1FeCICgXhCds5aPUDzP95glEX81emfXiSkhape1iA6gSvMcGce3ISfd+o72ZnIUSS98hXl4bpT1TyQQK8sGPyI5mDBWJAwITMEIvxnH6HyAXCkEv+MkHjijXBS8+MvpZq3/pXWauEZDO/as6tMhxohUx6o51LoaTIMDpyDTHo0cZghaZK9EGYCJMy3G0svy4nfaSLOZ+ImBJzQ/AZPsqm9KJ5fF7MxgQPaFHmV1s/CD0p57E3IaOGMv0HnrmLnzzqsldLpLWh+PbHjx1piteIrm6oHJ4Yyo2OasKqzviwJAN4gtMolPqFtxYOK0WM2IzJqeqeMuBdfv0lOAzCP6hrzHKmSy3+A5J21Yo9kQOY/hNb0S0="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1091,
+    "candidatesTokenCount": 3,
+    "totalTokenCount": 1209,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1080
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 11
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "thoughtsTokenCount": 115
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:27:53.172376Z",
+  "responseId": "mW7gatjCCp3AsbwPuaGNWA"
+}
+
+
+--- RAW#025 [tools:gemini-3.7-flash:zzFakeTool] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"zzFakeTool": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"zzFakeTool\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#026 [tools:gemini-3.7-flash:fileSearch] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"fileSearch": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"fileSearch\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#027 [grounding:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "What is the current CEO of Google? One line."}]}], "tools": [{"google_search": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current CEO of Google is Sundar Pichai.",
+            "thoughtSignature": "AY89a185JeqZSVYRfW9aQnKbTDNQhyDNraligvpZQgePMNTGDpv6WGCS5txORDmKz4g2TOvKYNAXgkASg3mAsM5g4Zsiop1gPgKO6RnZj3h0gs1N/4Tsq1c2sdzAL9TL/GifPAV7kkRQq4+klCS4PqKXGArjiO/+YBEVJxu5xjxtf1bTFckQJDQiNJXFaHJWv4y5PMY="
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "groundingMetadata": {
+        "webSearchQueries": [
+          "who is current CEO of Google"
+        ],
+        "searchEntryPoint": {
+          "renderedContent": "\u003cstyle\u003e\n.container {\n  align-items: center;\n  border-radius: 8px;\n  display: flex;\n  font-family: Google Sans, Roboto, sans-serif;\n  font-size: 14px;\n  line-height: 20px;\n  padding: 8px 12px;\n}\n.chip {\n  display: inline-block;\n  border: solid 1px;\n  border-radius: 16px;\n  min-width: 14px;\n  padding: 5px 16px;\n  text-align: center;\n  user-select: none;\n  margin: 0 8px;\n  -webkit-tap-highlight-color: transparent;\n}\n.carousel {\n  overflow: auto;\n  scrollbar-width: none;\n  white-space: nowrap;\n  margin-right: -12px;\n}\n.headline {\n  display: flex;\n  margin-right: 4px;\n}\n.gradient-container {\n  position: relative;\n}\n.gradient {\n  position: absolute;\n  transform: translate(3px, -9px);\n  height: 36px;\n  width: 9px;\n}\n@media (prefers-color-scheme: light) {\n  .container {\n    background-color: #fafafa;\n    box-shadow: 0 0 0 1px #0000000f;\n  }\n  .headline-label {\n    color: #1f1f1f;\n  }\n  .chip {\n    background-color: #ffffff;\n    border-color: #d2d2d2;\n    color: #5e5e5e;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #f2f2f2;\n  }\n  .chip:focus {\n    background-color: #f2f2f2;\n  }\n  .chip:active {\n    background-color: #d8d8d8;\n    border-color: #b6b6b6;\n  }\n  .logo-dark {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #fafafa 15%, #fafafa00 100%);\n  }\n}\n@media (prefers-color-scheme: dark) {\n  .container {\n    background-color: #1f1f1f;\n    box-shadow: 0 0 0 1px #ffffff26;\n  }\n  .headline-label {\n    color: #fff;\n  }\n  .chip {\n    background-color: #2c2c2c;\n    border-color: #3c4043;\n    color: #fff;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #353536;\n  }\n  .chip:focus {\n    background-color: #353536;\n  }\n  .chip:active {\n    background-color: #464849;\n    border-color: #53575b;\n  }\n  .logo-light {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\n  }\n}\n\u003c/style\u003e\n\u003cdiv class=\"container\"\u003e\n  \u003cdiv class=\"headline\"\u003e\n    \u003csvg class=\"logo-light\" width=\"18\" height=\"18\" viewBox=\"9 9 35 35\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"\u003e\n      \u003cpath fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M42.8622 27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821 32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622 32.2571 42.8622 27.0064V27.0064Z\" fill=\"#4285F4\"/\u003e\n      \u003cpath fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 43.8555C30.9659 43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306 37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563 39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\" fill=\"#34A853\"/\u003e\n      \u003cpath fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16.6559 29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111 24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992 26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559 29.8904V29.8904Z\" fill=\"#FBBC05\"/\u003e\n      \u003cpath fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164
+
+--- RAW#028 [probeC4:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://storage.googleapis.com/nonexistent-bucket-abc123-xyz/q.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"Cannot fetch content from the provided URL. Please ensure the URL is valid and accessible. Status: URL_ERROR-ERROR_NOT_FOUND","type":"upstream_error","param":"","code":400}}
+
+--- RAW#029 [tools:gemini-3.7-flash:urlContext] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"urlContext": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a18TS+nirDaPynCnf/4GYe+sERHN9P1wmFlHrtSAq2V0+QXpQTwabVP0+UxWTqvKBkT4O6HCeNotOLcUsOfhsCcSt2j57VMMNwHzlBn5p72ipdMC"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 25,
+    "candidatesTokenCount": 9,
+    "totalTokenCount": 34,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 25
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      }
+    ]
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:00.486558Z",
+  "responseId": "oG7gap7ZHfmbotQPo-fBsA4"
+}
+
+
+--- RAW#030 [ncap_tool:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}], "toolConfig": {"functionCallingConfig": {"mode": "ANY", "allowedFunctionNames": ["get_weather"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "city": "Oslo"
+              },
+              "id": "call_7389148"
+            },
+            "thoughtSignature": "AY89a19HjiLCASMZLqQvpB35xLjziDOwPMsdcZ0UyypYjIsaT6vRIEP3RmiauzKypv7aBECPI0Z32Vx9ZDaOrvnN+jvRnngSQhSc6k9hyVONuqu+f71hfdCUZIlOHBgjCXnYnJEJWQBhIrJsegYoNg82eTzu9B4VlUpcQ+TjOhLoitqZkysOAW0OZyRcSsGvPCan6+ZKau5D0mnLcxrAHO5ZZ7rXfUZMl05LrrKZKktWhu4vui3g9FvoFB8a8Ovds/QcVoHRYAZzVl80CIdFWM5DVXBq+kmrTgxOU0SDkmRqEvPIhk0anF7Z6LmAjdZZcbKMrjxKryy37GcyA1jqPB4="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 39,
+    "candidatesTokenCount": 17,
+    "totalTokenCount": 98,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 39
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 17
+      }
+    ],
+    "thoughtsTokenCount": 42
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:01.214097Z",
+  "responseId": "oW7gatGIDcKMmLAPu-ibsA8"
+}
+
+
+--- RAW#031 [tools:gemini-3.7-flash:google_search] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"google_search": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a1+fV0me5bG0mNp88pjPLh0NVi2H0pjlUgpEqLvpCIpNrxP2+is7O/+cw+hnJtOpJ5S/Y+SS4L2RtloyQ5U1S+rSAwBWKhZTjuFSc6c00yf6T3om0NM/rhRgz4osI0ZVZvq4b0ZQlwMhUIkbMXVdrdtYV48bZRVmzCM1P1SJM2dKTggncNTKJ2JB6JE92gQTl62PHloKiYBK/LNrct0sq/9JWVc+F234wXH/La0zeIimiouR4MUh+eiQmlP2XmxOoQCc1yZ7+GUH0byF"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 25,
+    "candidatesTokenCount": 9,
+    "totalTokenCount": 58,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 25
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      }
+    ],
+    "thoughtsTokenCount": 24
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:03.602955Z",
+  "responseId": "o27gasvmJK_J8uMPjfGyoQ0"
+}
+
+
+--- RAW#032 [cap_tool:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}], "tools": [{"type": "function", "function": {"name": "get_weather", "description": "Get weather", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}}]}
+<<< RESP: {"id":"chatcmpl-202610270928006201375108268d9d6S7HutCmp","model":"gemini-3.7-flash","object":"chat.completion","created":1793093285,"choices":[{"index":0,"message":{"role":"assistant","content":"","tool_calls":[{"id":"call_8313459","type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Oslo\"}"}}]},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":26,"completion_tokens":65,"total_tokens":91,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":26,"toolUsePromptTokenCount":0,"candidatesTokenCount":17,"totalTokenCount":91,"thoughtsTokenCount":48,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":26}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":17}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":26,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":17,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":48},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#033 [ncap_callback:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}, {"role": "model", "parts": [{"functionCall": {"name": "get_weather", "args": {"city": "Oslo"}, "id": "call_7389148"}, "thoughtSignature": "AY89a19HjiLCASMZLqQvpB35xLjziDOwPMsdcZ0UyypYjIsaT6vRIEP3RmiauzKypv7aBECPI0Z32Vx9ZDaOrvnN+jvRnngSQhSc6k9hyVONuqu+f71hfdCUZIlOHBgjCXnYnJEJWQBhIrJsegYoNg82eTzu9B4VlUpcQ+TjOhLoitqZkysOAW0OZyRcSsGvPCan6+ZKau5D0mnLcxrAHO5ZZ7rXfUZMl05LrrKZKktWhu4vui3g9FvoFB8a8Ovds/QcVoHRYAZzVl80CIdFWM5DVXBq+kmrTgxOU0SDkmRqEvPIhk0anF7Z6LmAjdZZcbKMrjxKryy37GcyA1jqPB4="}]}, {"role": "user", "parts": [{"functionResponse": {"name": "get_weather", "response": {"temp_c": 7, "condition": "snow", "humidity": 88}, "id": "call_7389148"}}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current weather in Oslo is snowy with a temperature of 7°C (44.6°F) and a humidity level of 88%.",
+            "thoughtSignature": "AY89a198S+ZEqwLew4Ht0X7+cx8EDY4lhNJ+byxy76t9zIY9MtNjrrYiLu6pEA1iWJtbpoZK7bbfSyaeH4RKRzGSity3P3q3bZRjxB/qACZU9WnH134359EUE3ydd7l5nsR2I+ckMJA2eMITfpqIUJbLmCVkQvNxDk9O+jK7+IlbmKMMWgfLEtsJ6DcHZAPug1HMuLufokm9llrUrcmIaMqZMImcPOlb1pOkXVBq5OnCPQgNRtyTjPSBSn7TVWFUjMlMaJTLZpKp+zDSevC7eW9L21RKAD54sKEE"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 107,
+    "candidatesTokenCount": 32,
+    "totalTokenCount": 177,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 107
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 32
+      }
+    ],
+    "thoughtsTokenCount": 38
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:04.247192Z",
+  "responseId": "pG7gapiLD_qaotQPkJ7L4Qo"
+}
+
+
+--- RAW#034 [tools:gemini-3.7-flash:codeExecution] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"codeExecution": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a18WXhLndxQc5kXpU5UF5iZah5O1MLKbeOmHa44cnXHSnOWl+DOxpv8JdtWlElmx47FnFq6KSGRRILAdZTAxVRmW6nOespagYSKyP7PrzUNeWRD9L43j5mu11QoKH7sQAgwtOdxgCrDOY3JLzRYaG3CZ1Ke2tNmF2bFtceFmaOfPaoXkeuJ01WEAwcmIyB1+TLi6MDbFwXanU9TYCKeqGJyBq2Oy+bmA/XAMpY8xwfDacbyx+k+xNE0y0pNfN+jpZwsKpxZSnrIIwA8krJ+KDtOAqB4z98tobc/BhfdrELVbkCpXNUThjdlfhKyw6PvtLy43RKoyt5t0pT7zvR0z57E3DpOGp2cVGVHhGZ2KHJSCG4sznHqh7ukeyOY1NsvgzxX1PD7/iafVVx11X82uBLdY+F/L6kNoAI5EkuqEcaRj+O56zoY7KHKCglWy2UlNB3JjXcQ="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1,
+    "candidatesTokenCount": 9,
+    "totalTokenCount": 73,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      }
+    ],
+    "thoughtsTokenCount": 63
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:06.720523Z",
+  "responseId": "pm7gaov9K4SBhcIPtrqyuAE"
+}
+
+
+--- RAW#035 [ncap_max:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Count from 1 to 100, digits separated by commas."}]}], "generationConfig": {"maxOutputTokens": 15}}
+<<< RESP: {
+  "candidates": [
+    {
+      "finishReason": "MAX_TOKENS"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 15,
+    "totalTokenCount": 27,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ],
+    "thoughtsTokenCount": 12
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:08.061128Z",
+  "responseId": "qG7gasjdA-LEvdIPzNODmQY"
+}
+
+
+--- RAW#036 [cap_json:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}], "response_format": {"type": "json_schema", "json_schema": {"name": "p", "strict": true, "schema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"], "additionalProperties": false}}}}
+<<< RESP: {"id":"chatcmpl-202610270928062210979608268d9d6d0iyExsE","model":"gemini-3.7-flash","object":"chat.completion","created":1793093289,"choices":[{"index":0,"message":{"role":"assistant","content":"{\"name\":\"Wang Lei\",\"age\":36,\"job\":\"pilot\",\"city\":\"Xi'an\"}"},"finish_reason":"stop"}],"usage":{"prompt_tokens":121,"completion_tokens":163,"total_tokens":284,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":121,"toolUsePromptTokenCount":0,"candidatesTokenCount":21,"totalTokenCount":284,"thoughtsTokenCount":142,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":121}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":21}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":121,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":21,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":142},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#037 [effort:gemini-3.7-flash:none] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 400 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "none"}
+<<< RESP: {"error":{"message":"Thinking level is unsupported: THINKING_LEVEL_MINIMAL","type":"upstream_error","param":"","code":400}}
+
+--- RAW#038 [ncap_stop:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat this exact string and nothing else: ALPHA|OMEGA"}]}], "generationConfig": {"stopSequences": ["|"]}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "ALPHA",
+            "thoughtSignature": "AY89a1+pNKfLMXBMlyk+YJy7E49satUqprsQ6R6JYAmj/G32+qxhZQdGkQj3HhcqwilurP0M+9Pbs5Yyd478sy6VuvqC+bhZJYl36w0O1RHLUCJr+owIwVM13S4gOCed8PdgMxgytNbBGOZLVI54nhVBTGpxcQnJ0LkDh/nIaveLx4bmYx2RVqgfVqC/spi3qTMSe+3hNGSLKybnLEOWwS5LlZYSBHwSOkBuXBSmewmoskNPHD2wcsLswTPV0iF748POeK7+c+c2V0PdGU3eTBJfrzQ7QmMUTTcpXBWMz/radrHEGgN4NyM3ouywQ+VxZcqI7Yf4CXCya8VGOefVWyzB6XY15KZZOoInupXxVGQVBUNpZ2nSfdhNB3BsMr2yK7h9SlULDCm0o1TUrNIJoS9PLBLjlximbpuJgoqyrZn0ybtryWR6YCV7Kv7WTiz7ZZfKTTcl++0qDtuuLZ6OrX8CKeRTB40bcDirYGLpRruv1L/Tdg+gMtSfz0F6vLKRH1dnNgchmkCVv2URaILFoiEmzRg9HEJtQ2Gn3bhTEv+TvEINKTS6/OiwT8wSOTK/"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 12,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 105,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 12
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 92
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:10.701746Z",
+  "responseId": "qm7garLqKoL2xN8Po6aQgQg"
+}
+
+
+--- RAW#039 [effort:gemini-3.7-flash:low] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "low"}
+<<< RESP: {"id":"chatcmpl-202610270928126297259188268d9d6xGf77ZGj","model":"gemini-3.7-flash","object":"chat.completion","created":1793093294,"choices":[{"index":0,"message":{"role":"assistant","content":"3127"},"finish_reason":"stop"}],"usage":{"prompt_tokens":13,"completion_tokens":50,"total_tokens":63,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":13,"toolUsePromptTokenCount":0,"candidatesTokenCount":4,"totalTokenCount":63,"thoughtsTokenCount":46,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":13}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":4}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":13,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":4,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":46},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#040 [cap_multi:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "My ox is named Doudou. Remember."}, {"role": "assistant", "content": "Doudou, noted!"}, {"role": "user", "content": "Ox name? One word."}]}
+<<< RESP: {"id":"chatcmpl-202610270928204751340218268d9d6ZqzzQq30","model":"gemini-3.7-flash","object":"chat.completion","created":1793093302,"choices":[{"index":0,"message":{"role":"assistant","content":"Doudou"},"finish_reason":"stop"}],"usage":{"prompt_tokens":22,"completion_tokens":111,"total_tokens":133,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":22,"toolUsePromptTokenCount":0,"candidatesTokenCount":3,"totalTokenCount":133,"thoughtsTokenCount":108,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":22}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":3}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":22,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":3,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":108},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#041 [effort:gemini-3.7-flash:high] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "high"}
+<<< RESP: {"id":"chatcmpl-202610270928184739043738268d9d6ho90QbMk","model":"gemini-3.7-flash","object":"chat.completion","created":1793093303,"choices":[{"index":0,"message":{"role":"assistant","content":"3127"},"finish_reason":"stop"}],"usage":{"prompt_tokens":13,"completion_tokens":215,"total_tokens":228,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":13,"toolUsePromptTokenCount":0,"candidatesTokenCount":4,"totalTokenCount":228,"thoughtsTokenCount":211,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":13}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":4}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":13,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":4,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":211},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#042 [ncap_sys:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"systemInstruction": {"parts": [{"text": "You must answer in English only, always."}]}, "contents": [{"role": "user", "parts": [{"text": "你叫什么名字？一句话。"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "My name is Gemini, a large language model built by Google.",
+            "thoughtSignature": "AY89a1+WtXtJbbDP6s1PvUa6Vdl2DpBUhkevdQRUT2mgYO+pID4bAiLMqDjCS6mDj3kA5+xZ4pLUaifAsnnkUIzVzbJGERwmWqgTwtKJ71/ANlj2Im41fPTVnwfcBWxX4kHJDjyig0Djub6u/k8kw4dXPUDA1xLp1IvajECSvt4zMeWC+AdfoEDYsnE0DKt2k623eDd0QMPkTN7d2vHAUExauGHOiwWoZuZxRyhUlMH7m/HHg/8m69s1y9trPAAFAtkHe4ObuCOh0DTZGjzQqHAR0tyYfN311JLtzF6BRQduesFs0SB+ooU68u062VgVTydyU0XZNyZKT9N0uTooquHk5eNqloVaS1UMzMoObjSzN6JjYA2nm0jokPXS2/1C8YOMO9WH0TFMHRlJKqjijxMK2mQZpsaifColh+NP1ertHeQduXu6ceH4t+AN0sffEjSmTglCbhiw8qdeW6Ie+SoMZFh2tRTo7FNzVGkk302OB8zhqRgC8CtHq//zuRnHWLYf9emWprpCoZ7RxjEvnEAhqszPvsKTNKNk3SNbNfNloo0DsKyqIMApZ5ZmzVkp2KxlVv6pyOZ9CtCFVzVKTSSuMPsEGbtmuFSuL2mZEGhuDWeaQBLjI0l7TNtdICYHS4Jh7ZgoXeZg6nzvG0Eu5LpvGDy++6ET+tVfMyhMEesR8ZAGX9YIcaSqCd8CzBIapZE6lZ3M4mvF3bQ2+YgaTDgAjQ67DookokcT1TwiWJ5vqYiG4EU2fcJIifExakCT3hRzasfeT8qlQAq0FnYqIbDZmOZ2EWIKwV/52+hemPbTgab9aePPEc1FxxCc0RaSewmOiMEVAep9BcOF7dTOoFkvUzob9DT9bu2zK8tVCaPf9VbhKOI4WpyxCd7vDklhYgd1mtkMRzcQShl2Zd1mYnnXqEMir7JKBs4LXrAyK3UHMwgmNfbaV8TrstaiitFzGQLRV0d42ixYcFlZaFD8sw6tNiY58Tv+j1Saa/XpI83hpxmMixLuc95eAg0MHg0JzNDZNDX72QNWAbU9sEVzcunllrjPpjsAUidM3+P3/8rUUhPSkJZz9+pZNRjF2Jirnwjn+WLV93jm2FtGTcJyRftg1rAq0ydl6Exe3rHxTfk8ZD3mNf75PG4msqUOSPETMS1vglNCPyqPNw7uBgabSyrVPDZN3TGoyJ/gSv3n7FRNNyr574ikMT2XJylJMPB5o8Oy8WrnkGotkr3xhLPifrCKhzK/hlhi2DUksUcMENyLHHDNX2VjnWK1q4LEtgSt5w=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 17,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 268,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 17
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ],
+    "thoughtsTokenCount": 238
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:18.878533Z",
+  "responseId": "sm7gasXPNZeaotQPiIvXkQE"
+}
+
+
+--- RAW#043 [param_mt:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Count from 1 to 100, digits separated by commas."}], "max_tokens": 15}
+<<< RESP: {"id":"chatcmpl-202610270928233320998078268d9d66hVYxwwr","model":"gemini-3.7-flash","object":"chat.completion","created":1793093306,"choices":[{"index":0,"message":{"role":"assistant","content":""},"finish_reason":"length"}],"usage":{"prompt_tokens":15,"completion_tokens":12,"total_tokens":27,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":15,"toolUsePromptTokenCount":0,"candidatesTokenCount":0,"totalTokenCount":27,"thoughtsTokenCount":12,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":15}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":15,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":12},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#044 [cap_roundtrip:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}, {"role": "assistant", "content": null, "tool_calls": [{"id": "call_probe_1", "type": "function", "function": {"name": "get_weather", "arguments": "{\"city\": \"Oslo\"}"}}]}, {"role": "tool", "tool_call_id": "call_probe_1", "content": "{\"temp_c\": 7, \"condition\": \"snow\", \"humidity\": 88}"}, {"role": "user", "content": "Summarize the weather in one short sentence."}]}
+<<< RESP: {"id":"chatcmpl-202610270928245879574968268d9d6MsbKOklw","model":"gemini-3.7-flash","object":"chat.completion","created":1793093308,"choices":[{"index":0,"message":{"role":"assistant","content":"It is currently snowing in Oslo with a temperature of 7°C."},"finish_reason":"stop"}],"usage":{"prompt_tokens":42,"completion_tokens":255,"total_tokens":297,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":42,"toolUsePromptTokenCount":0,"candidatesTokenCount":15,"totalTokenCount":297,"thoughtsTokenCount":240,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":42}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":15}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":42,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":15,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":240},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#045 [ncap_json:gemini-3.7-flash:responseJsonSchema] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}]}], "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\"name\":\"Wang Lei\",\"age\":36,\"job\":\"pilot\",\"city\":\"Xi'an\"}",
+            "thoughtSignature": "AY89a19edM9jNrVojihWdgz8h4E7J22PYb2QTlaguI41MPPn0LsZv/xJgpvXkNW95ki7IcPeaBpTEk4pIhgLkhMhpk+J+IxGFt/sbTZ9TjyfuzGCGuZe/lMJ3iryX9KfWlVcKZLp1xRTzmGcfB4xX8moyPl6UMGn0bOYk+EjYXiihbQj5LmjEFi5UsF1/xBZLSmiOHPDza80JjTIi116pVPva94vfYfzwBaRcMkQa0Bclzz71BGIdnd3KdUftanH2qeInJcXS+5lGK3p7pWrmocXehroN/tK95baQv+sEIqANFWW+yEwE1jYZc5nfaOL4bOe20YbQBqmgc/N2BkA8/LkVVhq5BlOpIRJDUk9h1Z0Pxor/A26YvvOYesIghe8meKRRt6NVaGUvfaYtyR3YqljHbHwIN7NrC9ye02HE20cd5bUoILL9Mvf77htNcPtCMfQhx51JU92CCkn/AJ/O47NqQp/7NZP5zMOmotTkByDOm6F3Ygh9QX0tGIlmAbhwdGOWRZOdUhijdVYtrOiLih+7RpC367TZUf+5cvbslrKUaz0prwQEyrpqT1PgZUFqJk7RiskI7MT9boXL+ilhPFqOWuW/7Xm5e3mQu92n8b4vCCcgqbV4VZiHS5X7llUK4brlRQ3PHIHxYzUTO30a5LEAZqhabZyJyKbhBEmbZL8Qcc/jjlWMvpF6/oHaVmXPmU3+15mll6azTs3u1WtpTz4C1XEQPJ1PWy2NxmkYtRzz/xIpB1aApk5asguGNQP88L0pRFQQtYjJYnU9BbDmb+5nzsqNipCiA74/dunsG6NMIL5zmqzYGPxM/ffCIgoYmVdL8jWzrhzWDK26tiP"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 121,
+    "candidatesTokenCount": 21,
+    "totalTokenCount": 326,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 121
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 21
+      }
+    ],
+    "thoughtsTokenCount": 184
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:26.208378Z",
+  "responseId": "um7gavrbDI278uMP8MDPuA0"
+}
+
+
+--- RAW#046 [err_model] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "no-such-xyz-999", "messages": [{"role": "user", "content": "hi"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model no-such-xyz-999 under group Gemini-Vertex (distributor) (request id: 202610270928293698571388268d9d6itPYvNfN)","type":"new_api_error"}}
+
+--- RAW#047 [param_stop:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "用一句话介绍北京。"}], "stop": ["。"], "reasoning_effort": "low"}
+<<< RESP: {"id":"chatcmpl-202610270928272626570548268d9d61ZsVUv9C","model":"gemini-3.7-flash","object":"chat.completion","created":1793093309,"choices":[{"index":0,"message":{"role":"assistant","content":"北京是中国的首都，一座将三千年建城史的古老底蕴与繁华现代的国际大都市风貌完美交融的文化名城"},"finish_reason":"stop"}],"usage":{"prompt_tokens":6,"completion_tokens":34,"total_tokens":40,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":6,"toolUsePromptTokenCount":0,"candidatesTokenCount":34,"totalTokenCount":40,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":6}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":34}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":6,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":34,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#048 [ncap_stream:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:streamGenerateContent?alt=sse -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat exactly this token and nothing else: ST-b70509368b6ac1d1-END"}]}]}
+<<< RESP: [{"candidates": [{"content": {"role": "model", "parts": [{"text": "ST-b7"}]}}], "usageMetadata": {"trafficType": "ON_DEMAND"}, "modelVersion": "gemini-3.7-flash", "createTime": "2026-10-27T09:28:30.951689Z", "responseId": "vm7gaomLOp2hotQP7JOkiAU"}, {"candidates": [{"content": {"role": "model", "parts": [{"text": "0509368b6ac1d1-END"}]}}], "usageMetadata": {"trafficType": "ON_DEMAND"}, "modelVersion": "gemini-3.7-flash", "createTime": "2026-10-27T09:28:30.951689Z", "responseId": "vm7gaomLOp2hotQP7JOkiAU"}, {"candidates": [{"content": {"role": "model", "parts": [{"text": "", "thoughtSignature": "AY89a19n12DET3dTXgidtw6BSBIqO3vlknqhW6/fM4diLiDa8Wvc5wUgqEupcqRsN0j1y49zvAapVC3N6sDXR0T2NL6HF0Lm8HuGiou1LWlC4X5DBgAAWEy605CG8gJsgexgpkxAzsazJyUbAirez5pFJdZdnBD/fQLUJGIK2zPkhK6EWq/QI9r9TC2dTT33KgHgJ+NG0zLweaZexh8aVI0vSqG7/OG9EObig7r2EhPgkAnN9HKraOy1bWCLRgBCJftOh69NVES9pfWoMn6o8iyvO68hG01IzO4/DfmZmmZTnmk+MjQUxjarGKwJYm9eagbCv/VgQLOzXdJPrhncDfaMuHLTrtTX1p9VBWni/6S2YIgWs9eLHWg5vPNphXPF2QL3623nvzmtivnPY3QPwhe1pSIqOOAvjSacZk/jhW7qBkh3LF0zq+xtYMcxpoMcLF/nsxH7717ZJvG3O2TZYxSywsc04ww+QLnHv/NtSSb9JRryNryVH2lumPDtirA5UlkIMYRx/siR7ToZgC5DTgwonvFGseyQOKr5nDvMypGll2SYABYrdtEnsFFxsTLUt2QNoFM571LFGtQsIfe83I+BOjOXj3HUTpY+4Do8/ncd6f+YYdpP9/0CR4w2Du+6yEHIlj1t1aS4IZflmqvuaeL5SnO4JyHcY/+Bt4a+1Fuzg/4Qa0akAOOnzEXKxQdxzlbSitWy32jMGpSqBQ+e8uAmCFGVZbuaQ1wvEu7JRrmNc5IpUhoewgDgh7DmERCw8NLrticrqSUNuEgDR8pAsctX+Fs6igZCdj0acRu8R557bcrdfZg7bJFxNpYqn79nQmD7t+zfhiC8EuqcIEBuOKhRzgeHH8OCxVYlH4upArIJbZoE0BjZp6mp9I/gUyfeMwrdOlr/w2Q1mkkqdvP2mKOJoPqTfkFICZHvlS6E+ZX7did6dAGREjCu35oHuDBSyg+4"}]}, "finishReason": "STOP"}], "usageMetadata": {"promptTokenCount": 27, "candidatesTokenCount": 19, "totalTokenCount": 214, "trafficType": "ON_DEMAND", "promptTokensDetails": [{"modality": "TEXT", "tokenCount": 27}], "candidatesTokensDetails": [{"modality": "TEXT", "tokenCount": 19}], "thoughtsTokenCount": 168}, "modelVersion": "gemini-3.7-flash", "createTime": "2026-10-27T09:28:30.951689Z", "responseId": "vm7gaomLOp2hotQP7JOkiAU"}]
+
+--- RAW#049 [param_sys:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "system", "content": "You must answer in English only, always."}, {"role": "user", "content": "你叫什么名字？一句话。"}]}
+<<< RESP: {"id":"chatcmpl-202610270928306647092348268d9d6WpkVSUoz","model":"gemini-3.7-flash","object":"chat.completion","created":1793093314,"choices":[{"index":0,"message":{"role":"assistant","content":"I am Gemini, a large language model built by Google."},"finish_reason":"stop"}],"usage":{"prompt_tokens":17,"completion_tokens":209,"total_tokens":226,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":17,"toolUsePromptTokenCount":0,"candidatesTokenCount":12,"totalTokenCount":226,"thoughtsTokenCount":197,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":17}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":12}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":17,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":12,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":197},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#050 [param_temp:gemini-3.7-flash] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 400 
+>>> REQ: {"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "hi"}], "temperature": 9.9}
+<<< RESP: {"error":{"message":"Unable to submit request because it has a temperature value of 9.9 but the supported range is from 0 (inclusive) to 2.0001 (exclusive). Update the value and try again.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#051 [ncap_multi:gemini-3.7-flash] POST https://api.zzzrouter.com/v1beta/models/gemini-3.7-flash:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "My ox is named Doudou. Remember."}]}, {"role": "model", "parts": [{"text": "Doudou, noted!"}]}, {"role": "user", "parts": [{"text": "Ox name? One word."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Doudou",
+            "thoughtSignature": "AY89a1+n1J9f6rDH9x2KnoKH6xNQuva63ZS1YXLR9Av24ij6XRBm83BihnHQUacJrG1MM4eGZbYWyYdKzclqBPLW14sGmqH6n2dB6hrrlBCjwZJYAMfosylAWbpNYKzdiqosTbHHDOMIFSDArwGRumyDfgKvyWGkhzq30Nv5HZzWBJo4YYzprdUiQ6yab/WsqTEIVwHxQoScQepBDDC5dt7PNdRVbNjPj7fhqftNfS6hYV/w+cl4qtlGXw2xheY7x6j/W+9aTXfCONxXN2W/0wYtdHXSb6nyLGQWx1sa6PrRC4d+9LKbSn4LlcVlyER6b+3wres2RQRqPd2cseaPIxUVx32f7VyQ+oBpzujsWpYuRZ4ImFjkKr/j+pLhV+yU4MNehoAcpHchWtNu3eadanK4ySq64Tj7owmAtBPZT0Vk3vK7g1FcucHrIBWwhvWJFnQlb4ThwYOB9w0Spdy2RoFca2/ynyp6SBH7+5mORz9PUhjZt1blLdztTPWSG1U57Qy6GWaKuyz6ul4x2v4gE1hKntF43Vp6ofhsHeiP+vj4nFgva2gieEYRI9endsS5gSq9EV/4y/tr"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 22,
+    "candidatesTokenCount": 3,
+    "totalTokenCount": 138,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 22
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "thoughtsTokenCount": 113
+  },
+  "modelVersion": "gemini-3.7-flash",
+  "createTime": "2026-10-27T09:28:35.497462Z",
+  "responseId": "w27garauHsuLl7oPgb29qA8"
+}
+
+
+--- RAW#052 [native:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1/fJHXpcZXH35fZgpmp3ZTyy46f0sKpgRZXvGE1S2mfTLi4ETESUvtUAdzD9P+eKSpn1HeuvJsa3T7UbdV43f5zanvJchFlcWRNAKPnS8KuXQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 33,
+    "candidatesTokenCount": 5,
+    "totalTokenCount": 38,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 33
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:28:40.732213Z",
+  "responseId": "yG7garXYLLiK8uMP7-aLwAE"
+}
+
+
+--- RAW#053 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#054 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#055 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#056 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#057 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#058 [probeB:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 403 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://generativelanguage.googleapis.com/v1beta/files/probe-fake-123", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"The caller does not have permission","type":"upstream_error","param":"","code":403}}
+
+--- RAW#059 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#060 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#061 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#062 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#063 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#064 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#065 [fields:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"message":"Thinking budget is not supported for this model. Use thinking level instead. See https://ai.google.dev/gemini-api/docs/thinking for details.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#066 [probeC1:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 500 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://probe-fake-bucket-xyz/img.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"Internal error encountered.","type":"upstream_error","param":"","code":500}}
+
+--- RAW#067 [tools:gemini-4-argon:vertexAiSearch] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexAiSearch": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"vertexAiSearch\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#068 [tools:gemini-4-argon:vertexRagStore] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexRagStore": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"vertexRagStore\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#069 [probeC2:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 404 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg", "mimeType": "image/jpeg"}}]}]}
+<<< RESP: {"error":{"message":"No such object: cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg","type":"upstream_error","param":"","code":404}}
+
+--- RAW#070 [tools:gemini-4-argon:zzFakeTool] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"zzFakeTool": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"zzFakeTool\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#071 [tools:gemini-4-argon:fileSearch] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"fileSearch": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"fileSearch\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#072 [probeC3:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/scones.jpg", "mimeType": "image/jpeg"}}, {"text": "What food is in this image? One short phrase."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Blueberry scones and fresh blueberries.",
+            "thoughtSignature": "AY89a1+WaYQQ8AvqLpO/HUalenm86Cpg5Kxezzl3/N/ZfxJR3/de6FtXN7o427qsu9uH6L4YDmp/Ig0fdELz0Od7qqWe0VK9pAIKo2Zs+hlDv081EQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1124,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 1136,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1080
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 44
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 12
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:28:58.794398Z",
+  "responseId": "2m7gap6-MOGxmPUPkMWDiQw"
+}
+
+
+--- RAW#073 [probeC4:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 429 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://storage.googleapis.com/nonexistent-bucket-abc123-xyz/q.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#074 [tools:gemini-4-argon:urlContext] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"urlContext": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a18xmG4tOiL2E25ijWR4amEedRYiTE3K7cMFIULFs0Nrxj7Cb+Iht7v7XJTSL9SFjOlQXka2L0QxOw2pzsWwcvP+ys7JZN0R4kTweTWolp5kTg=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 192,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 205,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 192
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:30:05.433870Z",
+  "responseId": "HW_gas69Go278uMP8MDPuA0"
+}
+
+
+--- RAW#075 [nonce:gemini-4-argon#1] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP -1 网络异常
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 7ee63360999d9dea"}]}
+<<< RESP: [SSL: RECORD_LAYER_FAILURE] record layer failure (_ssl.c:2713)
+
+--- RAW#076 [tools:gemini-4-argon:google_search] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"google_search": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hi there! How can I help you today?",
+            "thoughtSignature": "AY89a1+b1konJjvsQT4FK6G1Q/RSDl8hb6waCQpAASXZmO/DUsH2FmCAcvwD6VLZqI6mUhZkPkSzDub0Q1RGdTu1zlVnsBUKqU0z1QIb2SZFl1MDig=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 209,
+    "candidatesTokenCount": 14,
+    "totalTokenCount": 223,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 209
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:30:16.712332Z",
+  "responseId": "KG_gaoy9K8v2mLAPsKa7sQ8"
+}
+
+
+--- RAW#077 [nonce:gemini-4-argon#2] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: c3a4edc72822cd0e"}]}
+<<< RESP: {"id":"chatcmpl-202610270930490885510128268d9d6awGmyo9L","model":"gemini-4-argon","object":"chat.completion","created":1793093459,"choices":[{"index":0,"message":{"role":"assistant","content":"c3a4edc72822cd0e"},"finish_reason":"stop"}],"usage":{"prompt_tokens":53,"completion_tokens":17,"total_tokens":70,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":53,"toolUsePromptTokenCount":0,"candidatesTokenCount":17,"totalTokenCount":70,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":53}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":17}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":53,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":17,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#078 [nonce:gemini-4-argon#3] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 4a13e8fe34f33d20"}]}
+<<< RESP: {"id":"chatcmpl-202610270931010204347358268d9d6MNB1pLlm","model":"gemini-4-argon","object":"chat.completion","created":1793093466,"choices":[{"index":0,"message":{"role":"assistant","content":"4a13e8fe34f33d20"},"finish_reason":"stop"}],"usage":{"prompt_tokens":56,"completion_tokens":19,"total_tokens":75,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":56,"toolUsePromptTokenCount":0,"candidatesTokenCount":19,"totalTokenCount":75,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":56}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":19}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":56,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":19,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#079 [tools:gemini-4-argon:codeExecution] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"codeExecution": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a1+x3dhJ0MSjVu4yLBzPhDKaeFxfnjjqprdC/O+fDgJcGHoKCeP0YU6+74lqPGkcKs3XeavYLOTOH+E0XSQvMMUQwOG0DCXaq6fO0BW3gij2yg=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 202,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 215,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 202
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:30:55.253178Z",
+  "responseId": "T2_gavq5D6Lgz_IP397jiAw"
+}
+
+
+--- RAW#080 [grounding:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP -1 网络异常
+>>> REQ: {"contents": [{"parts": [{"text": "What is the current CEO of Google? One line."}]}], "tools": [{"google_search": {}}]}
+<<< RESP: [SSL: RECORD_LAYER_FAILURE] record layer failure (_ssl.c:2713)
+
+--- RAW#081 [cap_tool:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}], "tools": [{"type": "function", "function": {"name": "get_weather", "description": "Get weather", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}}]}
+<<< RESP: {"id":"chatcmpl-202610270931077475333078268d9d6AcONh3YE","model":"gemini-4-argon","object":"chat.completion","created":1793093498,"choices":[{"index":0,"message":{"role":"assistant","content":"","tool_calls":[{"id":"call_5028560","type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Oslo\"}"}}]},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":86,"completion_tokens":23,"total_tokens":109,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":86,"toolUsePromptTokenCount":0,"candidatesTokenCount":23,"totalTokenCount":109,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":86}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":23}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":86,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":23,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#082 [effort:gemini-4-argon:none] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "none"}
+<<< RESP: {"id":"chatcmpl-202610270931269496735398268d9d6Il2N9PAL","model":"gemini-4-argon","object":"chat.completion","created":1793093519,"choices":[{"index":0,"message":{"role":"assistant","content":"3127"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":8,"total_tokens":52,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":44,"toolUsePromptTokenCount":0,"candidatesTokenCount":8,"totalTokenCount":52,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":44}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":8}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":44,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":8,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#083 [ncap_tool:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}], "toolConfig": {"functionCallingConfig": {"mode": "ANY", "allowedFunctionNames": ["get_weather"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "city": "Oslo"
+              },
+              "id": "call_7910965"
+            },
+            "thoughtSignature": "AY89a18R7k863X0zQGqE62hJAb47dm7IMrU6g+gry/H57VChpoAI4v29wdRCnYP7ys+fswOGKaMLbCm3F8lFJ/06+tAq8XPHhuzsi9xyvhqwn+2Jbw=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 99,
+    "candidatesTokenCount": 23,
+    "totalTokenCount": 122,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 99
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 23
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:31:13.215079Z",
+  "responseId": "YW_gaqeQDbiK8uMP7-aLwAE"
+}
+
+
+--- RAW#084 [cap_json:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}], "response_format": {"type": "json_schema", "json_schema": {"name": "p", "strict": true, "schema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"], "additionalProperties": false}}}}
+<<< RESP: {"id":"chatcmpl-202610270931395794429598268d9d6iS3oQXqy","model":"gemini-4-argon","object":"chat.completion","created":1793093534,"choices":[{"index":0,"message":{"role":"assistant","content":"{\"name\": \"Wang Lei\", \"age\": 36, \"job\": \"pilot\", \"city\": \"Xi'an\"}"},"finish_reason":"stop"}],"usage":{"prompt_tokens":257,"completion_tokens":44,"total_tokens":301,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":257,"toolUsePromptTokenCount":0,"candidatesTokenCount":44,"totalTokenCount":301,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":257}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":44}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":257,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":44,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#085 [effort:gemini-4-argon:low] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "low"}
+<<< RESP: {"id":"chatcmpl-202610270931599290713588268d9d6uEzLgb0F","model":"gemini-4-argon","object":"chat.completion","created":1793093543,"choices":[{"index":0,"message":{"role":"assistant","content":"3127"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":8,"total_tokens":52,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":44,"toolUsePromptTokenCount":0,"candidatesTokenCount":8,"totalTokenCount":52,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":44}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":8}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":44,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":8,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#086 [effort:gemini-4-argon:high] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "high"}
+<<< RESP: {"id":"chatcmpl-202610270932248045092758268d9d66OP92ltZ","model":"gemini-4-argon","object":"chat.completion","created":1793093549,"choices":[{"index":0,"message":{"role":"assistant","content":"3127"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":92,"total_tokens":136,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":44,"toolUsePromptTokenCount":0,"candidatesTokenCount":8,"totalTokenCount":136,"thoughtsTokenCount":84,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":44}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":8}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":44,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":8,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":84},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#087 [ncap_callback:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}, {"role": "model", "parts": [{"functionCall": {"name": "get_weather", "args": {"city": "Oslo"}, "id": "call_7910965"}, "thoughtSignature": "AY89a18R7k863X0zQGqE62hJAb47dm7IMrU6g+gry/H57VChpoAI4v29wdRCnYP7ys+fswOGKaMLbCm3F8lFJ/06+tAq8XPHhuzsi9xyvhqwn+2Jbw=="}]}, {"role": "user", "parts": [{"functionResponse": {"name": "get_weather", "response": {"temp_c": 7, "condition": "snow", "humidity": 88}, "id": "call_7910965"}}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current weather in Oslo is snow with a temperature of 7°C and a humidity of 88%.",
+            "thoughtSignature": "AY89a1++S01DfZTicJjAs+kbPIVOUFEXiSZ02ccbsuX/8855s1C2VxPVVs9NI7mi9UBQ0SizyG1jV8Et9nvtstyOgf47uf4uzeKJ8EVbOu41SihgwQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 151,
+    "candidatesTokenCount": 27,
+    "totalTokenCount": 178,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 151
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 27
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:32:08.703699Z",
+  "responseId": "mG_gatP5Ko278uMP8MDPuA0"
+}
+
+
+--- RAW#088 [ncap_max:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Count from 1 to 100, digits separated by commas."}]}], "generationConfig": {"maxOutputTokens": 15}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "1, 2, 3, 4,",
+            "thoughtSignature": "AY89a1+W4G0SfZNPMS0cV6vY0Wy0bYuIJ0VOkpqIdc8dvEfty33cSgcopgZW1lI1BYB/goobEZ4H0Nph+QEs+9NzmrQ0DldoaZgF2a3goToWsFYG7g=="
+          }
+        ]
+      },
+      "finishReason": "MAX_TOKENS",
+      "continuationToken": "AY89a1+v+zZiaoN1x58kTjTaFwCQmWw8jhO6oQuJwOCqlTXCcxClJLk7qUQ+dDWjuLmoYJMUZ9qqKk251o51YJcHbJMMVL8pqoorzGbFHROzq2aejt0I036soN6BkkCOJP3PIqu6J66NPqAhdCVlcTtXGxd+uxD6BU73qiM5vQGyXRfN58vNhGkhWQ=="
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 46,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 61,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 46
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:32:47.232781Z",
+  "responseId": "v2_gas2aDsKMmLAPu-ibsA8"
+}
+
+
+--- RAW#089 [param_mt:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Count from 1 to 100, digits separated by commas."}], "max_tokens": 15}
+<<< RESP: {"id":"chatcmpl-202610270932309527181348268d9d6eUYGxI9W","model":"gemini-4-argon","object":"chat.completion","created":1793093582,"choices":[{"index":0,"message":{"role":"assistant","content":"1, 2, 3, 4,"},"finish_reason":"length"}],"usage":{"prompt_tokens":46,"completion_tokens":15,"total_tokens":61,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":46,"toolUsePromptTokenCount":0,"candidatesTokenCount":15,"totalTokenCount":61,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":46}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":15}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":46,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":15,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#090 [ncap_stop:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat this exact string and nothing else: ALPHA|OMEGA"}]}], "generationConfig": {"stopSequences": ["|"]}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "ALPHA",
+            "thoughtSignature": "AY89a19tfsqz5B2TlTImNwCms14FL2+XJgpX5DjshdEzvjOTlfcTqAiAXv9trg+odBhAG7/2fp9xeUMcsfn6uCe37EPaY9k1FSZsCr/xQqEFIwW7IA=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 43,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 51,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:32:53.208005Z",
+  "responseId": "xW_gaoXZDNGj8uMP_cSSsQs"
+}
+
+
+--- RAW#091 [param_stop:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "用一句话介绍北京。"}], "stop": ["。"], "reasoning_effort": "low"}
+<<< RESP: {"id":"chatcmpl-202610270933031730193408268d9d60vYzMrAo","model":"gemini-4-argon","object":"chat.completion","created":1793093609,"choices":[{"index":0,"message":{"role":"assistant","content":"北京是一座承载着三千年历史底蕴的千年古都，也是一座古老传统与现代繁华交相辉映的国际化大都市和中国的首都"},"finish_reason":"stop"}],"usage":{"prompt_tokens":36,"completion_tokens":39,"total_tokens":75,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":36,"toolUsePromptTokenCount":0,"candidatesTokenCount":39,"totalTokenCount":75,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":36}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":39}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":36,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":39,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#092 [param_sys:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "system", "content": "You must answer in English only, always."}, {"role": "user", "content": "你叫什么名字？一句话。"}]}
+<<< RESP: {"id":"chatcmpl-202610270933304948357858268d9d6Ws8AFJPD","model":"gemini-4-argon","object":"chat.completion","created":1793093622,"choices":[{"index":0,"message":{"role":"assistant","content":"My name is Gemini 4 Argon, a large language model built by Google."},"finish_reason":"stop"}],"usage":{"prompt_tokens":73,"completion_tokens":20,"total_tokens":93,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":73,"toolUsePromptTokenCount":0,"candidatesTokenCount":20,"totalTokenCount":93,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":73}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":20}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":73,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":20,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#093 [param_temp:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 429 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "hi"}], "temperature": 9.9}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#094 [cap_multi:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "My ox is named Doudou. Remember."}, {"role": "assistant", "content": "Doudou, noted!"}, {"role": "user", "content": "Ox name? One word."}]}
+<<< RESP: {"id":"chatcmpl-202610270933449306671778268d9d6CbSATQbW","model":"gemini-4-argon","object":"chat.completion","created":1793093631,"choices":[{"index":0,"message":{"role":"assistant","content":"Doudou"},"finish_reason":"stop"}],"usage":{"prompt_tokens":63,"completion_tokens":7,"total_tokens":70,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":63,"toolUsePromptTokenCount":0,"candidatesTokenCount":7,"totalTokenCount":70,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":63}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":7}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":63,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":7,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#095 [err_model] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "no-such-xyz-999", "messages": [{"role": "user", "content": "hi"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model no-such-xyz-999 under group Gemini-Vertex (distributor) (request id: 202610270933523626058318268d9d6s2WGndE3)","type":"new_api_error"}}
+
+--- RAW#096 [cap_roundtrip:gemini-4-argon] POST https://api.zzzrouter.com/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}, {"role": "assistant", "content": null, "tool_calls": [{"id": "call_probe_1", "type": "function", "function": {"name": "get_weather", "arguments": "{\"city\": \"Oslo\"}"}}]}, {"role": "tool", "tool_call_id": "call_probe_1", "content": "{\"temp_c\": 7, \"condition\": \"snow\", \"humidity\": 88}"}, {"role": "user", "content": "Summarize the weather in one short sentence."}]}
+<<< RESP: {"id":"chatcmpl-202610270933454563403828268d9d6Gin8oUCO","model":"gemini-4-argon","object":"chat.completion","created":1793093632,"choices":[{"index":0,"message":{"role":"assistant","content":"It is currently 7°C and snowing in Oslo with 88% humidity."},"finish_reason":"stop"}],"usage":{"prompt_tokens":104,"completion_tokens":23,"total_tokens":127,"billing_usage":{"source":"gemini_chat","semantic":"gemini","gemini_usage_metadata":{"promptTokenCount":104,"toolUsePromptTokenCount":0,"candidatesTokenCount":23,"totalTokenCount":127,"thoughtsTokenCount":0,"cachedContentTokenCount":0,"promptTokensDetails":[{"modality":"TEXT","tokenCount":104}],"toolUsePromptTokensDetails":[],"candidatesTokensDetails":[{"modality":"TEXT","tokenCount":23}]}},"prompt_tokens_details":{"cached_tokens":0,"text_tokens":104,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":23,"audio_tokens":0,"image_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#097 [ncap_sys:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"systemInstruction": {"parts": [{"text": "You must answer in English only, always."}]}, "contents": [{"role": "user", "parts": [{"text": "你叫什么名字？一句话。"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "My name is Gemini 4 Argon, a large language model built by Google.",
+            "thoughtSignature": "AY89a1+pnftmYrTjx46von0t5DSwZdLOM8jeKOT4qHkN074TZKCS4UYZo12blx/5VFosmMWgCzY44EVpaxjBKdl0U8NDfmA2/JYUxOCEgn051lj1nQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 20,
+    "totalTokenCount": 93,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 73
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 20
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:33:30.205079Z",
+  "responseId": "6m_gapfCDJu3mPUPpcucmQQ"
+}
+
+
+--- RAW#098 [ncap_json:gemini-4-argon:responseJsonSchema] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}]}], "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\"name\": \"Wang Lei\", \"age\": 36, \"job\": \"pilot\", \"city\": \"Xi'an\"}",
+            "thoughtSignature": "AY89a18rOve6HKRc3AqapwtjMHgtm01fS/vTuZnkOdInQkpwot0zLNKeLE8QeGR/GpjPk2S80nL2JOnOTbSaMDw4OGyMeqB7cY1+sp1QswTi8hwxCg=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 257,
+    "candidatesTokenCount": 44,
+    "totalTokenCount": 301,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 257
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 44
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:35:03.235028Z",
+  "responseId": "R3DgapSsDriK8uMP7-aLwAE"
+}
+
+
+--- RAW#099 [ncap_stream:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:streamGenerateContent?alt=sse -> HTTP -1 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat exactly this token and nothing else: ST-49f0f850a0d7b38f-END"}]}]}
+<<< RESP: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)>
+
+--- RAW#100 [ncap_multi:gemini-4-argon] POST https://api.zzzrouter.com/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "My ox is named Doudou. Remember."}]}, {"role": "model", "parts": [{"text": "Doudou, noted!"}]}, {"role": "user", "parts": [{"text": "Ox name? One word."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Doudou.",
+            "thoughtSignature": "AY89a194kagjtF0QSqOCcRGJ5kiDFIlYtyxFs9ne4fHgB/cRbMpN4u38BVKa1BzkbpMqJQZ0Bq24XwWYxbqbfPpW/Lhowi+Z3UUZvS5uebiyX31xCA=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 63,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 71,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 63
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-27T09:36:18.208607Z",
+  "responseId": "knDgat_dDJD1mLAPuPzy6Aw"
+}
+

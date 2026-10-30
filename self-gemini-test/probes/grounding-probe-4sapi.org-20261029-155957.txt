@@ -1,0 +1,186 @@
+############ google_search 双问探针报告 ############
+目标: https://4sapi.org  model=gemini-3.8-flash  time=2026-10-29 15:59:48
+— sweep: HTTP200 回报model=gemini-3.8-flash
+— native: 顶层=['candidates', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=3.1-flash-lite-preview-03-2026 trafficType=None serviceTier=standard createTime=False thoughts=None
+— grounding: groundingChunks=0 webSearchQueries=[] vertex_only=无 answer='The current  CEO of Google is Sundar Pichai, and as of October 202 6, the newest OpenAI models include the GPT-6.1 series, such as GPT-6.1 Terra.'
+
+### 证据 ###
+[flag类 w=2] model_version_remapped=3.1-flash-lite-preview-03-2026
+    依据: 渠道把请求模型 gemini-3.8-flash 路由到上游变体 3.1-flash-lite-preview-03-2026 —— 模型名被中间层改写，交付物与请求名不符（-tiered 类后缀常见于聚合分发层）
+### 交付缺陷 ###
+google_search 名存实亡: 无 groundingMetadata（依据: 真实搜索会返回 webSearchQueries/groundingChunks 引用元数据；无则模型只能凭训练数据作答，时效性问题会被旧知识冒充——比拒答更有害）
+
+### 原始报文 ###
+--- RAW#001 [sweep:gemini-3.8-flash] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-3.8-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly: PONG"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610290759575344717758268d9d6wfk3dRcY",
+  "model": "gemini-3.8-flash",
+  "object": "chat.completion",
+  "created": 1793260798,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "PONG"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 7,
+    "completion_tokens": 2,
+    "total_tokens": 9,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 7,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 2,
+        "totalTokenCount": 9,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": []
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 7,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 0,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#002 [native:gemini-3.8-flash] POST https://4sapi.org/v1beta/models/gemini-3.8-flash:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say OK"
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "<omitted 144 chars>"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 4,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "3.1-flash-lite-preview-03-2026",
+  "responseId": "AP3iasPAEoWLytMP7JCgoQ8"
+}
+
+--- RAW#003 [grounding:gemini-3.8-flash] POST https://4sapi.org/v1beta/models/gemini-3.8-flash:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the current CEO of Google and What is the newest LLM Openai Model? One line."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "google_search": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The current"
+          },
+          {
+            "text": " CEO of Google is Sundar Pichai, and as of October 202"
+          },
+          {
+            "text": "6, the newest OpenAI models include the GPT-6.1 series, such as GPT-6.1 Terra.",
+            "thoughtSignature": "<omitted 144 chars>"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 22,
+    "candidatesTokenCount": 43,
+    "totalTokenCount": 65,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 22
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "3.1-flash-lite-preview-03-2026",
+  "responseId": "Av3iaqbjKc-tuMYPqPePGQ"
+}

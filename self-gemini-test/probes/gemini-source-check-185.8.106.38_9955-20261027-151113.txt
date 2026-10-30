@@ -1,0 +1,113 @@
+############ 渠道总览 ############
+目标: http://185.8.106.38:9955  time=2026-10-27 15:11:13
+计划测试: 1 个模型, 并发=3, 采样=1
+
+— model_sweep（渠道级探活）—
+  gemini-3.5-flash             | HTTP200 回报model=gemini-3.5-flash
+
+==============================================================================
+############ 探针组 —— gemini-3.5-flash ############
+— native: 无可用原生端点
+— nonce: 0/3 MISMATCH('') MISMATCH('') MISMATCH('')
+— capability: 工具调用=FAIL(None) json_schema=FAIL 流式=FAIL(-1ch) 多轮=FAIL
+— effort: none=None(HTTP503) | low=None(HTTP503) | high=None(HTTP503)
+— params: max_tokens=15: finish=None(HTTP503) | stop=['。']: 未生效('') | system英文限定: 存疑('') | temperature=9.9: HTTP503 {"error": {"message": "No available channel for model gemini-3.5-flash under gro
+— roundtrip: FAIL('')
+— errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group d | 错key HTTP401: {"error":{"code":"","message":"无效的令牌 (request id: 20261027071128345513278268d9d6
+
+==============================================================================
+############ 分层判读 (VERDICT) —— gemini-3.5-flash ############
+⓪ 交付判定   : 🔴🔴【交付缺陷 x6】—— 以下请求-响应不对应:
+             ⟹ nonce 一致性 0/3 —— 存在响应串扰/缓存重放/空响应嫌疑（依据: 回复内容与请求内唯一随机数不对应）
+             ⟹ 工具结果回传失效（依据: 回传 role:tool 数据 7度/雪 后, 模型回复未引用任何工具数据——代理式 agent 流程在此渠道走不通）
+             ⟹ function calling 未触发（依据: 提供 tools 后未返回 tool_calls，代理式使用不可用）
+             ⟹ json_schema 结构化输出失效（依据: response_format=strict schema 下返回内容不满足 schema——程序化解析场景不可用）
+             ⟹ 流式输出异常（依据: stream=true 下拼接内容与请求 nonce 不对应）
+             ⟹ 多轮上下文失效（依据: 前轮信息未被后轮引用）
+⓪b 原生交付判定: 🟢【原生端点交付合格】—— 原生 generateContent 基础能力未发现静默改写
+① 渠道判源   : 【无法定案（证据不足或判据被中间层失效）】  置信度 low
+             ├ score: vertex=0 devapi=0
+② 探针明细   :
+             ├ native: 无可用原生端点
+             ├ capability: 工具调用=FAIL(None) json_schema=FAIL 流式=FAIL(-1ch) 多轮=FAIL
+             ├ effort: none=None(HTTP503) | low=None(HTTP503) | high=None(HTTP503)
+             ├ params: max_tokens=15: finish=None(HTTP503) | stop=['。']: 未生效('') | system英文限定: 存疑('') | temperature=9.9: HTTP503 {"error": {"message": "No available channel for model gemini-3.5-flash under gro
+             ├ roundtrip: FAIL('')
+             ├ errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group d | 错key HTTP401: {"error":{"code":"","message":"无效的令牌 (request id: 20261027071128345513278268d9d6
+③ 证据-依据对照:
+             ├ error_leak=distributor  [B类 w=1]
+             │   依据: 渠道自述从上级分销商(distributor)进货 —— 链路存在中间层（依据: 错误文案自带标记）
+
+==============================================================================
+############ 原始请求响应报文 (共18条) ############
+--- RAW#001 [sweep:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Reply with exactly: PONG"}]}
+<<< RESP: {"id":"chatcmpl-202610270711211476431098268d9d6A7w2juJN","model":"gemini-3.5-flash","object":"chat.completion","created":1793085082,"choices":[{"index":0,"message":{"role":"assistant","content":"PONG"},"finish_reason":"stop"}],"usage":{"prompt_tokens":6,"completion_tokens":88,"total_tokens":94,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":6,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":86},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#002 [native:gemini-3.5-flash] POST http://185.8.106.38:9955/v1beta/models/gemini-3.5-flash:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711233243930948268d9d6mooEQJy1)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#003 [native:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/models/gemini-3.5-flash:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 2026102707112478587738268d9d6VlUSaVgs)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#004 [effort:gemini-3.5-flash:none] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "none"}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711247265058308268d9d6WKoDy8Gy)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#005 [cap_tool:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}], "tools": [{"type": "function", "function": {"name": "get_weather", "description": "Get weather", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711247311034438268d9d6TUu52c24)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#006 [nonce:gemini-3.5-flash#1] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: cb0b484b5f1ee00f"}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711247332195558268d9d6DeBfTjB0)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#007 [cap_json:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}], "response_format": {"type": "json_schema", "json_schema": {"name": "p", "strict": true, "schema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"], "additionalProperties": false}}}}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711254236569538268d9d6STudU8lX)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#008 [nonce:gemini-3.5-flash#2] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 6c78e073b91b0053"}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711254202829578268d9d63VtXZH2E)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#009 [effort:gemini-3.5-flash:low] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "low"}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711254345998558268d9d654OdOZvD)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#010 [effort:gemini-3.5-flash:high] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "high"}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711261100724468268d9d61YHSCTZO)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#011 [nonce:gemini-3.5-flash#3] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 17c7e14027f06a4f"}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711261237129528268d9d68KClZTcl)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#012 [param_mt:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Count from 1 to 100, digits separated by commas."}], "max_tokens": 15}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711268011869028268d9d6sacZED7c)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#013 [cap_roundtrip:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}, {"role": "assistant", "content": null, "tool_calls": [{"id": "call_probe_1", "type": "function", "function": {"name": "get_weather", "arguments": "{\"city\": \"Oslo\"}"}}]}, {"role": "tool", "tool_call_id": "call_probe_1", "content": "{\"temp_c\": 7, \"condition\": \"snow\", \"humidity\": 88}"}, {"role": "user", "content": "Summarize the weather in one short sentence."}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711267981819238268d9d684ntQY5M)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#014 [cap_multi:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "My ox is named Doudou. Remember."}, {"role": "assistant", "content": "Doudou, noted!"}, {"role": "user", "content": "Ox name? One word."}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711267996829348268d9d6P49xiieI)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#015 [err_model] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "no-such-xyz-999", "messages": [{"role": "user", "content": "hi"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model no-such-xyz-999 under group default (distributor) (request id: 202610270711274759851728268d9d6Vnz2cG8T)","type":"new_api_error"}}
+
+--- RAW#016 [param_stop:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "用一句话介绍北京。"}], "stop": ["。"], "reasoning_effort": "low"}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711275305511198268d9d6a3tjisNT)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#017 [param_sys:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "system", "content": "You must answer in English only, always."}, {"role": "user", "content": "你叫什么名字？一句话。"}]}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711282173781488268d9d6fD9LErGZ)","type":"new_api_error","param":"","code":"model_not_found"}}
+
+--- RAW#018 [param_temp:gemini-3.5-flash] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-3.5-flash", "messages": [{"role": "user", "content": "hi"}], "temperature": 9.9}
+<<< RESP: {"error":{"message":"No available channel for model gemini-3.5-flash under group default (distributor) (request id: 202610270711289288087998268d9d6wmlLCHuV)","type":"new_api_error","param":"","code":"model_not_found"}}

@@ -1,0 +1,3765 @@
+############ 渠道总览 ############
+目标: https://4sapi.org  time=2026-10-28 14:18:56
+计划测试: 1 个模型, 并发=3, 采样=3
+
+— model_sweep（渠道级探活）—
+  gemini-4-argon               | HTTP200 回报model=gemini-4-argon
+
+==============================================================================
+############ 探针组 —— gemini-4-argon ############
+— native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+— nonce: 3/3 MATCH MATCH MATCH
+— fields: ok=0/3 trafficType=3 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+— tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+— grounding: groundingChunks=1 webSearchQueries=['current CEO of Google']
+— capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+— native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowing, ') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=OK(3ch) | multiturn=OK('doudou') | thoughtSignature=present
+— effort: minimal=0(HTTP200) | low=0(HTTP200) | medium=0(HTTP200) | high=0(HTTP200) [effort 未体现]
+— params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+— roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+— gs_scene: READ_OK('Aerial view of "WISH YOU WERE HERE" painted on a city street')
+— openai_vision: daisy=OK('White daisies with raind',img_tok=1080) | cat=OK('A tabby cat in the snow.',img_tok=1107) | url=OK('White daisy flowers ',img_tok=1080)
+— openai_tools: auto=OK(called) | forced=OK | none=OK | parallel=OK(2calls)
+— openai_stream: include_usage=OK(6ch)
+— openai_extra: thinking=unverified(low=0,high=0,sentinel=HTTP200) | safety=N/A(doc: images only) | cache=suspected_stripped(200x2)
+— errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "分组 Gemini综合分组 下模型 no-such-xyz-999 无可用渠道（distributor） (reques | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102806201481004884
+
+==============================================================================
+############ 分层判读 (VERDICT) —— gemini-4-argon ############
+⓪ 交付判定   : 🔴【交付缺陷 x1】—— 以下请求-响应不对应:
+             ⟹ extra_body.cached_content 疑似被静默剥离 —— 不存在/错误类型均未触发上游校验
+⓪b 原生交付判定: 🟢【原生端点交付合格】—— 原生 generateContent 基础能力未发现静默改写
+① 渠道判源   : 【无法定案（行为证据冲突）】  置信度 low
+             ├ gs_real_image=READ_OK('Blueberry scones, coffee, and pink peonies.') （GCS直读能力实证, Developer API 架构上不具备 → +6 A类）
+             ├ gs_fake=RegisterFile拒绝 （Developer API 标志行为, 双向文档核实 → +6 A类）
+             ├ https_404=URL_ERROR_status （v3审计: 非Vertex独占, 中性观测 → 不计分）
+             ├ tools_proto=无Vertex独占字段 （请求侧非 Vertex 原生；若存在 Developer API 形状转换层则只反映转换层 → +2 C类计入 devapi）
+             ├ field_family=trafficType族(tt=3/3,st=0/3,ct=0/3) （族划分观察）
+             ├ score: vertex=6 devapi=8
+② 探针明细   :
+             ├ native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+             ├ fields: ok=0/3 trafficType=3 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+             ├ tools: 接受=['urlContext', 'google_search', 'codeExecution'] 严格拒绝=['vertexAiSearch', 'vertexRagStore', 'zzFakeTool', 'fileSearch']
+             ├ grounding: groundingChunks=1 webSearchQueries=['current CEO of Google']
+             ├ capability: 工具调用=OK({'city': 'Oslo'}) json_schema=OK 流式=OK(6ch) 多轮=OK
+             ├ native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowing, ') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=OK(3ch) | multiturn=OK('doudou') | thoughtSignature=present
+             ├ effort: minimal=0(HTTP200) | low=0(HTTP200) | medium=0(HTTP200) | high=0(HTTP200) [effort 未体现]
+             ├ params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+             ├ roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+             ├ gs_scene: READ_OK('Aerial view of "WISH YOU WERE HERE" painted on a city street')
+             ├ openai_vision: daisy=OK('White daisies with raind',img_tok=1080) | cat=OK('A tabby cat in the snow.',img_tok=1107) | url=OK('White daisy flowers ',img_tok=1080)
+             ├ openai_tools: auto=OK(called) | forced=OK | none=OK | parallel=OK(2calls)
+             ├ openai_stream: include_usage=OK(6ch)
+             ├ openai_extra: thinking=unverified(low=0,high=0,sentinel=HTTP200) | safety=N/A(doc: images only) | cache=suspected_stripped(200x2)
+             ├ errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "分组 Gemini综合分组 下模型 no-such-xyz-999 无可用渠道（distributor） (reques | 错key HTTP401: {"error":{"code":"","message":"Invalid token (request id: 2026102806201481004884
+③ 证据-依据对照:
+             ├ field_family=trafficType族(tt=3/3,st=0/3,ct=0/3)  [B类 w=1]
+             │   依据: 族划分观察。官方proto一手核验(2026-10-10): traffic_type=8/create_time=12 仅定义于 Vertex proto, generativelanguage v1beta/v1alpha 均无; serviceTier/turnToken 两边 proto 均无 -> 不可归因仅记录
+             ├ files_uri=other(HTTP500)  [观测类 w=0]
+             │   依据: 未识别的 files/URI 行为: {"error": {"message": "You exceeded your current quota, please check your plan and billing details. For more information
+             ├ gs_fake=registerfile_reject  [A类 w=6]
+             │   依据: gs:// 被 'RegisterFile' 流程拒绝 —— Developer API 标志行为（依据: ai.google.dev 文件输入文档明确 gs:// 需先 files:register；Vertex 文档示范 gs:// 直连。双向文档核实）
+             ├ tools_proto=no_vertex_fields(strict)  [B类 w=2]
+             │   依据: 上游 proto 不含 Vertex 独占工具字段（vertexAiSearch/vertexRagStore 均 Cannot find field，对照 zzFakeTool 同样被严格拒绝 —— 说明 tools[] 被原样透传给真实 proto 解析）—— 请求侧判定: 非 Vertex 原生（依据: vertexAiSearch/vertexRagStore 为 Vertex GenerateContentRequest 独占字段；但注意若链上存在 Developer API 形状的转换层，此判据只反映转换层）
+             ├ tools_knownset=pre_filesearch  [B类 w=1]
+             │   依据: 认知集含 urlContext/googleMaps 但不含 fileSearch —— 上游 API 版本介于两者之间（依据: 三者为 Developer API 按时间先后加入的字段）
+             ├ gs_real_image=READ_OK('Blueberry scones, coffee, and pink peonies.')  [A类 w=6]
+             │   依据: 上游真实拉取并理解了 GCS 公开对象 —— GCS 直读能力实证（依据: Developer API 架构上不支持裸 gs:// 直读，需 Files 注册；此能力仅 Vertex 原生具备。真图+正确描述无法靠改字段伪造）
+             ├ grounding=real(1 chunks)  [B类 w=1]
+             │   依据: 搜索 grounding 真实可用（依据: 返回了 webSearchQueries+groundingChunks 引用元数据）
+             ├ gs_real_scene=READ_OK('Aerial view of "WISH YOU WERE HERE" painted on a city street')  [观测类 w=0]
+             │   依据: 第二张真实 GCS 图读取成功（依据: 与 scones 同桶的公开对象，描述与真图内容一致；仅作 GCS 直读一致性复核，不重复计分）
+             ├ https_404=URL_ERROR_status  [观测类 w=0]
+             │   依据: URL_ERROR-* 状态族（v3审计修正: AI Studio 行为渠道 uqapi 也出现此状态族 → 非 Vertex 独占, 疑似 generativelanguage URL 抓取器词汇 → 降级为中性观测, 不计分）
+             ├ error_leak=distributor  [B类 w=1]
+             │   依据: 渠道自述从上级分销商(distributor)进货 —— 链路存在中间层（依据: 错误文案自带标记）
+
+==============================================================================
+############ 原始请求响应报文 (共55条) ############
+--- RAW#001 [sweep:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly: PONG"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619046662545178268d9d67oTtO5Ff",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168347,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "PONG"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 37,
+    "completion_tokens": 6,
+    "total_tokens": 43,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 37,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 6,
+        "totalTokenCount": 43,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 37
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 37,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 6,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#002 [native:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say OK"
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "<omitted 112 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 33,
+    "candidatesTokenCount": 5,
+    "totalTokenCount": 38,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 33
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:09.191683Z",
+  "responseId": "3ZPhasPZC5OSsbwPoZTd-Ak"
+}
+
+--- RAW#003 [fields:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say OK"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingBudget": 0
+    }
+  }
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Thinking budget is not supported for this model. Use thinking level instead. See https://***.dev/***/***/*** for details.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#004 [fields:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say OK"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingBudget": 0
+    }
+  }
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Thinking budget is not supported for this model. Use thinking level instead. See https://***.dev/***/***/*** for details.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#005 [fields:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say OK"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingBudget": 0
+    }
+  }
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Thinking budget is not supported for this model. Use thinking level instead. See https://***.dev/***/***/*** for details.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#006 [nonce:gemini-4-argon#1] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly this token and nothing else: e990d5e89f424f76"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619132044245288268d9d6zZjKHU0O",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168356,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "e990d5e89f424f76"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 56,
+    "completion_tokens": 20,
+    "total_tokens": 76,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 56,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 20,
+        "totalTokenCount": 76,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 56
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 20
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 56,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 20,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#007 [tools:gemini-4-argon:vertexAiSearch] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "vertexAiSearch": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Invalid JSON payload received. Unknown name \"vertexAiSearch\" at 'tools[0]': Cannot find field.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#008 [tools:gemini-4-argon:vertexRagStore] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "vertexRagStore": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Invalid JSON payload received. Unknown name \"vertexRagStore\" at 'tools[0]': Cannot find field.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#009 [tools:gemini-4-argon:zzFakeTool] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "zzFakeTool": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Invalid JSON payload received. Unknown name \"zzFakeTool\" at 'tools[0]': Cannot find field.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#010 [nonce:gemini-4-argon#2] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly this token and nothing else: 51379013ab93bb29"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619172219215338268d9d60BJvfctZ",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168360,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "51379013ab93bb29"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 55,
+    "completion_tokens": 18,
+    "total_tokens": 73,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 55,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 18,
+        "totalTokenCount": 73,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 55
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 18
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 55,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 18,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#011 [tools:gemini-4-argon:fileSearch] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "fileSearch": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Invalid JSON payload received. Unknown name \"fileSearch\" at 'tools[0]': Cannot find field.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#012 [probeB:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 500 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/probe-fake-123",
+            "mimeType": "image/png"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://***.dev/***/***/*** To monitor your current usage, head to: https://***.dev/*** ",
+    "type": "upstream_error",
+    "param": "",
+    "code": 429
+  }
+}
+
+--- RAW#013 [nonce:gemini-4-argon#3] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly this token and nothing else: 3849f18341dbbec2"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619217081981928268d9d6wCU4rrsR",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168364,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "3849f18341dbbec2"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 54,
+    "completion_tokens": 17,
+    "total_tokens": 71,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 54,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 17,
+        "totalTokenCount": 71,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 54
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 17
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 54,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 17,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#014 [probeC1:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "gs://probe-fake-bucket-xyz/img.png",
+            "mimeType": "image/png"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Referencing Google Cloud Storage files directly is not supported. Register them using ***.RegisterFile first. ",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#015 [tools:gemini-4-argon:urlContext] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "urlContext": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 192,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 205,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 192
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:22.923781Z",
+  "responseId": "6pPhaoWxONCpvr0P2MvPuA4"
+}
+
+--- RAW#016 [tools:gemini-4-argon:google_search] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "google_search": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 209,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 222,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 209
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:27.290053Z",
+  "responseId": "75PhaoXaEe-R9LsPovS8gQM"
+}
+
+--- RAW#017 [probeC2:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "gs://cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg",
+            "mimeType": "image/jpeg"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Referencing Google Cloud Storage files directly is not supported. Register them using ***.RegisterFile first. ",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#018 [tools:gemini-4-argon:codeExecution] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "codeExecution": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 202,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 215,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 202
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:31.189805Z",
+  "responseId": "85Phau3KC4XwsbwP4Kq74Qs"
+}
+
+--- RAW#019 [probeC3:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "gs://cloud-samples-data/generative-ai/image/scones.jpg",
+            "mimeType": "image/jpeg"
+          }
+        },
+        {
+          "text": "What is in this image? One short phrase."
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Blueberry scones, coffee, and pink peonies.",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1123,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 1138,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1080
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:32.026714Z",
+  "responseId": "9JPhatrQAbeYusEPw43AwAM"
+}
+
+--- RAW#020 [grounding:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the current CEO of Google? One line."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "google_search": {}
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current CEO of Google is Sundar Pichai.",
+            "thoughtSignature": "<omitted 156 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "groundingMetadata": {
+        "webSearchQueries": [
+          "current CEO of Google",
+          "who is the CEO of Google 2026"
+        ],
+        "searchEntryPoint": {
+          "renderedContent": "<style>\n.container {\n  align-items: center;\n  border-radius: 8px;\n  display: flex;\n  font-family: Google Sans, Roboto, sans-serif;\n  font-size: 14px;\n  line-height: 20px;\n  padding: 8px 12px;\n}\n.chip {\n  display: inline-block;\n  border: solid 1px;\n  border-radius: 16px;\n  min-width: 14px;\n  padding: 5px 16px;\n  text-align: center;\n  user-select: none;\n  margin: 0 8px;\n  -webkit-tap-highlight-color: transparent;\n}\n.carousel {\n  overflow: auto;\n  scrollbar-width: none;\n  white-space: nowrap;\n  margin-right: -12px;\n}\n.headline {\n  display: flex;\n  margin-right: 4px;\n}\n.gradient-container {\n  position: relative;\n}\n.gradient {\n  position: absolute;\n  transform: translate(3px, -9px);\n  height: 36px;\n  width: 9px;\n}\n@media (prefers-color-scheme: light) {\n  .container {\n    background-color: #fafafa;\n    box-shadow: 0 0 0 1px #0000000f;\n  }\n  .headline-label {\n    color: #1f1f1f;\n  }\n  .chip {\n    background-color: #ffffff;\n    border-color: #d2d2d2;\n    color: #5e5e5e;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #f2f2f2;\n  }\n  .chip:focus {\n    background-color: #f2f2f2;\n  }\n  .chip:active {\n    background-color: #d8d8d8;\n    border-color: #b6b6b6;\n  }\n  .logo-dark {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #fafafa 15%, #fafafa00 100%);\n  }\n}\n@media (prefers-color-scheme: dark) {\n  .container {\n    background-color: #1f1f1f;\n    box-shadow: 0 0 0 1px #ffffff26;\n  }\n  .headline-label {\n    color: #fff;\n  }\n  .chip {\n    background-color: #2c2c2c;\n    border-color: #3c4043;\n    color: #fff;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #353536;\n  }\n  .chip:focus {\n    background-color: #353536;\n  }\n  .chip:active {\n    background-color: #464849;\n    border-color: #53575b;\n  }\n  .logo-light {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\n  }\n}\n</style>\n<div class=\"container\">\n  <div class=\"headline\">\n    <svg class=\"logo-light\" width=\"18\" height=\"18\" viewBox=\"9 9 35 35\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M42.8622 27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821 32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622 32.2571 42.8622 27.0064V27.0064Z\" fill=\"#4285F4\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 43.8555C30.9659 43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306 37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563 39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\" fill=\"#34A853\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16.6559 29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111 24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992 26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559 29.8904V29.8904Z\" fill=\"#FBBC05\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164 32.9095 18.8091L37.8466 13.8719C34.853 11.082 30.9659 9.3736 26.3109 9.3736C19.5712 9.3736 13.7563 13.245 10.9194 18.8875L16.6559 23.3388C18.0195 19.2636 21.8282 16.2386 26.3109 16.2386V16.2386Z\" fill=\"#EA4335\"/>\n    </svg>\n    <svg class=\"logo-dark\" width=\"18\" height=\"18\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\">\n      <circle cx=\"24\" cy=\"23\" fill=\"#FFF\" r=\"22\"/>\n      <path d=\"M33.76 34.26c2.75-2.56 4.49-6.37 4.49-11.26 0-.89-.08-1.84-.29-3H24.01v5.99h8.03c-.4 2.02-1.5 3.56-3.07 4.56v.75l3.91 2.97h.88z\" fill=\"#4285F4\"/>\n      <path d=\"M15.58 25.77A8.845 8.845 0 0 0 24 31.86c1.92 0 3.62-.46 4.97-1.31l4.79 3.71C31.14 36.7 27.65 38 24 38c-5.93 0-11.01-3.4-13.45-8.36l.17-1.01 4.06-2.85h.8z\" fill=\"#34A853\"/>\n      <path d=\"M15.59 20.21a8.864 8.864 0 0 0 0 5.58l-5.03 3.86c-.98-2-1.53-4.25-1.53-6.64 0-2.39.55-4.64 1.53-6.64l1-.22 3.81 2.98.22 1.08z\" fill=\"#FBBC05\"/>\n      <path d=\"M24 14.14c2.11 0 4.02.75 5.52 1.98l4.36-4.36C31.22 9.43 27.81 8 24 8c-5.93 0-11.01 3.4-13.45 8.36l5.03 3.85A8.86 8.86 0 0 1 24 14.14z\" fill=\"#EA4335\"/>\n    </svg>\n    <div class=\"gradient-container\"><div class=\"gradient\"></div></div>\n  </div>\n  <div class=\"carousel\">\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFh0PZ_hM3KNiGxtFy-yWhZiXNsSx3QxcuA5T-Pj2iYx_zTXJ1FCiqp5xr2dkmS7aZ--p0TjY0QqMgzNEonxY_1ccGX0EsoyOConbPsdsQK_7cukRbXd2bXQ22h_uh48JV-CZRkILvI6tUjcKBCtUQZsF4_0u63RM_wi7EJ5TKg0-y-a2x8SqTnyEtrGNEePzr8BFi6F1aQ7cqH6bfusdnK\">who is the CEO of Google 2026</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEs7AgYRZXSWTlOAtkLWT2H1ZUBwvUANMqt0lGZpZhN-xzaxVjlBeiFaNzA1xfz_LBtHmxMbprgOn9XjWciUw5muU7IVGKxz6us9gRZv-aOrHwNj-GrHdpOk1Iqrs8qP6RQp0zfAdm-cofqPc7Bn2TxyYqodkZZF1Wdm1D_XzFcDRS7qqyidVk3ImCDYcBDWg9PBf0nUcp11w==\">current CEO of Google</a>\n  </div>\n</div>\n"
+        },
+        "groundingChunks": [
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEXKAoAnUI6aTtppTyIm_2DlqZrC6sfKOuLX9u5hypsXPoFlNfTUzdtQEqSxAvCNfIpqrJ-65-utwMOlO_JSQh_MZ0GSiakcHqHbgzSRjS92ezkDvOKhTTDnumWHHLqomRg6LJiC
+... [truncated 956 chars]
+
+--- RAW#021 [cap_tool:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather in Oslo? Use tool."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619347557475238268d9d6sm9shuxB",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168378,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_0226bb33189149f99286ceae2f118800",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Oslo\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 86,
+    "completion_tokens": 23,
+    "total_tokens": 109,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 86,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 23,
+        "totalTokenCount": 109,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 86
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 23
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 86,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 23,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#022 [ncap_tool:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is the weather in Oslo? Use the get_weather tool."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "city"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+      "allowedFunctionNames": [
+        "get_weather"
+      ]
+    }
+  }
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "city": "Oslo"
+              },
+              "id": "call_523468"
+            },
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 99,
+    "candidatesTokenCount": 23,
+    "totalTokenCount": 122,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 99
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 23
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:36.131627Z",
+  "responseId": "-JPhaquECPfYsbwPtajpqAY"
+}
+
+--- RAW#023 [probeC3b:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "gs://cloud-samples-data/generative-ai/image/city-street.png",
+            "mimeType": "image/png"
+          }
+        },
+        {
+          "text": "What is in this image? One short phrase."
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Aerial view of \"WISH YOU WERE HERE\" painted on a city street.",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1143,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 1162,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1100
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 19
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:36.528932Z",
+  "responseId": "-JPhaqSkIKHQ1PIPwbPCgAw"
+}
+
+--- RAW#024 [probeC4:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ:
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "fileData": {
+            "fileUri": "https://storage.googleapis.com/nonexistent-bucket-abc123-xyz/q.png",
+            "mimeType": "image/png"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Cannot fetch content from the provided URL. Please ensure the URL is valid and accessible. Status: URL_ERROR-ERROR_NOT_FOUND",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#025 [cap_json:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "p",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "job": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "age",
+          "job",
+          "city"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619392972294848268d9d6Ds7TG4Ep",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168382,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"name\": \"Wang Lei\", \"age\": 36, \"job\": \"pilot\", \"city\": \"Xi'an\"}"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 257,
+    "completion_tokens": 44,
+    "total_tokens": 301,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 257,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 44,
+        "totalTokenCount": 301,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 257
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 44
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 257,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 44,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#026 [ncap_callback:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is the weather in Oslo? Use the get_weather tool."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "city": "Oslo"
+            },
+            "id": "call_523468"
+          },
+          "thoughtSignature": "<omitted 116 chars>"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temp_c": 7,
+              "condition": "snow",
+              "humidity": 88
+            },
+            "id": "call_523468"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "city"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current weather in Oslo is snowing, with a temperature of 7°C and 88% humidity.",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 151,
+    "candidatesTokenCount": 28,
+    "totalTokenCount": 179,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 151
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 28
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:41.567592Z",
+  "responseId": "_ZPhaqjSItCvsbwPz6vTwQI"
+}
+
+--- RAW#027 [effort:gemini-4-argon:minimal] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "reasoning_effort": "minimal"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619435249177578268d9d6Q3XAVdKR",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168390,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting number:** The farmer begins with 17 sheep.\n2. **Analyze the phrasing:** The riddle states that \"all *but* 9\" run away. In English, \"all but 9\" means \"all except 9.\" \n3. **Determine who ran away and who stayed:** If every sheep *except* for 9 of them ran away, that means those 9 specific sheep did not run away. (To be exact, 17 minus 9 equals 8 sheep that ran away). \n4. **Conclusion:** The 9 sheep that did not run away are the ones left with the farmer.\n\nFinal number: **9**"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 160,
+    "total_tokens": 224,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 160,
+        "totalTokenCount": 224,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 160
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 160,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#028 [ncap_max:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Count from 1 to 100, digits separated by commas."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 15
+  }
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "1, 2, 3, 4,",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "MAX_TOKENS",
+      "continuationToken": "AY89a19DBrCHf5YxYdQNChkOPQczu8R0/gGBa7ZjVd49aoK2CPsx0yBeyGvxfRz6FQPGbRGCFu9ee/l/MiSaxhMdBVUW181ayjbhiqjRhNjtcZP13g+Tqk5t0LsOLCMovmE2RfKpt96HCJVFzeWSFcOt35e1YVvssLMKZepnraXwh09Q7KHAfWmbBA=="
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 46,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 61,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 46
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:44.964117Z",
+  "responseId": "AJThapXsOs-Xl7oP8_PO2Ao"
+}
+
+--- RAW#029 [cap_multi:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "My ox is named Doudou. Remember."
+    },
+    {
+      "role": "assistant",
+      "content": "Doudou, noted!"
+    },
+    {
+      "role": "user",
+      "content": "Ox name? One word."
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619472396703628268d9d6rR5dsX5P",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168392,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Doudou."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 63,
+    "completion_tokens": 8,
+    "total_tokens": 71,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 63,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 8,
+        "totalTokenCount": 71,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 63
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 63,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 8,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#030 [param_mt:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Count from 1 to 100, digits separated by commas."
+    }
+  ],
+  "max_tokens": 15
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619534490885288268d9d6xVIPGyu0",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168395,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "1, 2, 3, 4,"
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 46,
+    "completion_tokens": 15,
+    "total_tokens": 61,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 46,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 15,
+        "totalTokenCount": 61,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 46
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 15
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 46,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 15,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#031 [effort:gemini-4-argon:low] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "reasoning_effort": "low"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619510183636888268d9d6BgRFQ1py",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168398,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting number:** The farmer begins with 17 sheep.\n2. **Analyze the phrasing:** The problem states that \"all *but* 9\" run away. The phrase \"all but 9\" means every sheep *except* for 9 of them ran away. \n3. **Determine the remaining amount:** Since those 9 sheep are the exceptions that did *not* run away, they are the ones still with the farmer. (17 total sheep - 8 sheep that ran away = 9 sheep).\n\n**Final number:** 9"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 136,
+    "total_tokens": 200,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 136,
+        "totalTokenCount": 200,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 136
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 136,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#032 [param_stop:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "用一句话介绍北京。"
+    }
+  ],
+  "stop": [
+    "。"
+  ],
+  "reasoning_effort": "low"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619566523252768268d9d6DSveP9Hq",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168401,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "北京是中国的首都，一座融合了三千年古都底蕴与现代化国际大都市活力的历史文化名城"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 36,
+    "completion_tokens": 30,
+    "total_tokens": 66,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 36,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 30,
+        "totalTokenCount": 66,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 36
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 30
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 36,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 30,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#033 [effort:gemini-4-argon:medium] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "reasoning_effort": "medium"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280619588591876628268d9d6uL946X4v",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168404,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting number:** The farmer begins with 17 sheep.\n2. **Analyze the phrasing:** The riddle states that \"all *but* 9\" run away. In English, \"all but 9\" means \"every sheep *except for* 9 of them.\" \n3. **Determine what happened to the 9 sheep:** Since the 9 sheep are the exception to the ones that ran away, those 9 sheep did not run away. They stayed behind. (This means 8 sheep actually ran away: 17 - 9 = 8).\n\nFinal number: **9**"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 146,
+    "total_tokens": 210,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 146,
+        "totalTokenCount": 210,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 146
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 146,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#034 [param_sys:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You must answer in English only, always."
+    },
+    {
+      "role": "user",
+      "content": "你叫什么名字？一句话。"
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620019058526268268d9d6JDjALw3S",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168407,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "My name is Gemini 4 Argon, a large language model built by Google."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 73,
+    "completion_tokens": 20,
+    "total_tokens": 93,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 73,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 20,
+        "totalTokenCount": 93,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 73
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 20
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 73,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 20,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#035 [effort:gemini-4-argon:high] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "reasoning_effort": "high"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620050510112898268d9d6FyJQJKye",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168409,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting number:** The farmer begins with 17 sheep.\n2. **Analyze the phrasing:** The problem states that \"all *but* 9\" run away. In English, \"all but [number]\" means that the stated number is the exception to what just happened. \n3. **Apply the logic:** Since running away is what happened to the rest of the flock, the 9 sheep are the ones that did *not* run away. \n\n**Final Number:**\n9"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 122,
+    "total_tokens": 186,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 122,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 122
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 122,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#036 [param_temp:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 400 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ],
+  "temperature": 9.9
+}
+<<< RESP:
+{
+  "error": {
+    "message": "Unable to submit request because it has a temperature value of 9.9 but the supported range is from 0 (inclusive) to 2.0001 (exclusive). Update the value and try again.",
+    "type": "upstream_error",
+    "param": "",
+    "code": 400
+  }
+}
+
+--- RAW#037 [cap_roundtrip:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather in Oslo? Use tool."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_probe_1",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\": \"Oslo\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_probe_1",
+      "content": "{\"temp_c\": 7, \"condition\": \"snow\", \"humidity\": 88}"
+    },
+    {
+      "role": "user",
+      "content": "Summarize the weather in one short sentence."
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620100052151618268d9d6hbSojiJH",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168413,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "It is currently 7°C and snowing in Oslo with 88% humidity."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 104,
+    "completion_tokens": 23,
+    "total_tokens": 127,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 104,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 23,
+        "totalTokenCount": 127,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 104
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 23
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 104,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 23,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#038 [err_model] POST https://4sapi.org/v1/chat/completions -> HTTP 503 
+>>> REQ:
+{
+  "model": "no-such-xyz-999",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+<<< RESP:
+{
+  "error": {
+    "code": "model_not_found",
+    "message": "分组 Gemini综合分组 下模型 no-such-xyz-999 无可用渠道（distributor） (request id: 202610280620139680653808268d9d6DsJBS1Zd)",
+    "type": "new_api_error"
+  }
+}
+
+--- RAW#039 [oai_vision:gemini-4-argon:daisy] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is in this image? One short phrase."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,<omitted 18556 chars>"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620103778523418268d9d6DYX8taq7",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168415,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "White daisies with raindrops."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1123,
+    "completion_tokens": 30,
+    "total_tokens": 1153,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1123,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 9,
+        "totalTokenCount": 1153,
+        "thoughtsTokenCount": 21,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1080
+          },
+          {
+            "modality": "TEXT",
+            "tokenCount": 43
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 9
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 43,
+      "audio_tokens": 0,
+      "image_tokens": 1080
+    },
+    "completion_tokens_details": {
+      "text_tokens": 9,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 21
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#040 [ncap_stop:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Repeat this exact string and nothing else: ALPHA|OMEGA"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "stopSequences": [
+      "|"
+    ]
+  }
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "ALPHA",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 43,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 51,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:19:53.293462Z",
+  "responseId": "CZThatb0Eeyk7OsP8K7r8Ag"
+}
+
+--- RAW#041 [oai_vision:gemini-4-argon:cat] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is in this image? One short phrase."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,<omitted 23812 chars>"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620165676810098268d9d6KryyWZvN",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168421,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A tabby cat in the snow."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1150,
+    "completion_tokens": 11,
+    "total_tokens": 1161,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1150,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 11,
+        "totalTokenCount": 1161,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 43
+          },
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1107
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 11
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 43,
+      "audio_tokens": 0,
+      "image_tokens": 1107
+    },
+    "completion_tokens_details": {
+      "text_tokens": 11,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#042 [ncap_sys:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You must answer in English only, always."
+      }
+    ]
+  },
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "你叫什么名字？一句话。"
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "My name is Gemini 4 Argon, a large language model built by Google.",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 20,
+    "totalTokenCount": 93,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 73
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 20
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:20:20.005952Z",
+  "responseId": "JJThasAuy4DV7w-24PWxBQ"
+}
+
+--- RAW#043 [oai_vision_url:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is in this image? One short phrase."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://storage.googleapis.com/cloud-samples-data/generative-ai/image/daisy.jpg"
+          }
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620219753295648268d9d6EAGaVOSC",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168426,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "White daisy flowers with water droplets."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1123,
+    "completion_tokens": 86,
+    "total_tokens": 1209,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1123,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 11,
+        "totalTokenCount": 1209,
+        "thoughtsTokenCount": 75,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 43
+          },
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1080
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 11
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 43,
+      "audio_tokens": 0,
+      "image_tokens": 1080
+    },
+    "completion_tokens_details": {
+      "text_tokens": 11,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 75
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#044 [ncap_json:gemini-4-argon:responseJsonSchema] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer"
+        },
+        "job": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "age",
+        "job",
+        "city"
+      ]
+    }
+  }
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\"name\": \"Wang Lei\", \"age\": 36, \"job\": \"pilot\", \"city\": \"Xi'an\"}",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 257,
+    "candidatesTokenCount": 44,
+    "totalTokenCount": 301,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 257
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 44
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:20:24.747790Z",
+  "responseId": "KJThao7SLeuFwtQP0MnYiQY"
+}
+
+--- RAW#045 [oai_choice_auto:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather in Oslo? Use the get_weather tool."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a city.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620274318673378268d9d6d26sKD4W",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168432,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_5e6579af3cc94a2b95b76ca903583f5f",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Oslo\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 96,
+    "completion_tokens": 23,
+    "total_tokens": 119,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 96,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 23,
+        "totalTokenCount": 119,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 96
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 23
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 96,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 23,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#046 [ncap_stream:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:streamGenerateContent?alt=sse -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Repeat exactly this token and nothing else: ST-1e52cb6c82a1dcd0-END"
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "ST-1e"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND"
+    },
+    "modelVersion": "gemini-4-argon",
+    "createTime": "2026-10-28T06:20:28.671472Z",
+    "responseId": "LJThavD9KIvUs8IP3qXJ0QI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "52cb6c82a1dcd0-END"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND"
+    },
+    "modelVersion": "gemini-4-argon",
+    "createTime": "2026-10-28T06:20:28.671472Z",
+    "responseId": "LJThavD9KIvUs8IP3qXJ0QI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "<omitted 112 chars>"
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 21,
+      "totalTokenCount": 77,
+      "trafficType": "ON_DEMAND",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 21
+        }
+      ]
+    },
+    "modelVersion": "gemini-4-argon",
+    "createTime": "2026-10-28T06:20:28.671472Z",
+    "responseId": "LJThavD9KIvUs8IP3qXJ0QI"
+  }
+]
+
+--- RAW#047 [ncap_multi:gemini-4-argon] POST https://4sapi.org/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ:
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "My ox is named Doudou. Remember."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Doudou, noted!"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ox name? One word."
+        }
+      ]
+    }
+  ]
+}
+<<< RESP:
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Doudou",
+            "thoughtSignature": "<omitted 116 chars>"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 63,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 70,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 63
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T06:20:39.368707Z",
+  "responseId": "N5ThasPAFp-9vfIPk9rF2Ag"
+}
+
+--- RAW#048 [oai_choice_forced:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the weather in Oslo?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a city.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "function",
+    "function": {
+      "name": "get_weather"
+    }
+  }
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620333063852118268d9d6JIFYHdMR",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168449,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_1accd4b1a984406a948df44ecf60bfae",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Oslo\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 92,
+    "completion_tokens": 23,
+    "total_tokens": 115,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 92,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 23,
+        "totalTokenCount": 115,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 92
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 23
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 92,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 23,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#049 [oai_choice_none:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather in Oslo? Use the get_weather tool."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a city.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "none"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620504196869698268d9d69Rjiv7vp",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168455,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I don't have access to real-time information or a `get_weather` tool in this environment to check the current live weather in Oslo. \n\nPlease check a local weather service, such as YR.no (the Norwegian Meteorological Institute's site), Weather.com, or a weather app on your device for the most up-to-date forecast!"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 42,
+    "completion_tokens": 79,
+    "total_tokens": 121,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 42,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 79,
+        "totalTokenCount": 121,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 42
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 79
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 42,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 79,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#050 [oai_parallel:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Get the weather for Oslo and Paris. Call get_weather for both cities."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a city.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    }
+  ],
+  "parallel_tool_calls": true
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280620564713587398268d9d6blhdxMk6",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168460,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_5e4105b3097d42f3ab311999ca740294",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Oslo\"}"
+            }
+          },
+          {
+            "id": "call_e6f9ff95dfef4fda820a934a071d5715",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Paris\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 101,
+    "completion_tokens": 41,
+    "total_tokens": 142,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 101,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 41,
+        "totalTokenCount": 142,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 101
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 41
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 101,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 41,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#051 [oai_think_lvl:gemini-4-argon:low] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "thinking_config": {
+    "thinking_level": "low",
+    "include_thoughts": true
+  }
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280621016662715198268d9d6mFURhSN2",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168466,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting amount:** The farmer begins with 17 sheep.\n2. **Analyze the wording:** The problem states that \"all *but* 9\" run away. The phrase \"all but 9\" means every sheep except for 9 of them left. \n3. **Determine what is left:** Instead of needing to subtract 9 from 17, the phrasing directly tells us the exact number of sheep that did *not* run away. \n\n**Final number:** 9"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 122,
+    "total_tokens": 186,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 122,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 122
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 122,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#052 [oai_think_lvl:gemini-4-argon:high] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "A farmer has 17 sheep. All but 9 run away. How many sheep remain? Work it out step by step, then give the final number."
+    }
+  ],
+  "thinking_config": {
+    "thinking_level": "high",
+    "include_thoughts": true
+  }
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280621078692981378268d9d64Li6GXu9",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168473,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the step-by-step breakdown:\n\n1. **Identify the starting amount:** The farmer begins with 17 sheep.\n2. **Analyze the phrasing:** The problem states that \"all *but* 9\" run away. The phrase \"all but 9\" means that 9 sheep are excluded from the group that ran away. \n3. **Determine the remaining amount:** Since those 9 sheep did not run away, they are the ones still with the farmer. (17 total sheep - 8 sheep that ran away = 9 sheep left).\n\nFinal number: **9**"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 131,
+    "total_tokens": 195,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 64,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 131,
+        "totalTokenCount": 195,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 64
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 131
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 64,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 131,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#053 [oai_extra_thinking:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say OK"
+    }
+  ],
+  "thinking_config": {
+    "thinking_level": "bogus_probe_level"
+  }
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280621142189718348268d9d6PW4dckOg",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168476,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "OK"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 5,
+    "total_tokens": 38,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 33,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 5,
+        "totalTokenCount": 38,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 33
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 33,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 5,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#054 [oai_extra_cache_name:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say OK"
+    }
+  ],
+  "cached_content": "cachedContents/nonexistent-probe-xyz"
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280621171247504258268d9d6k8J4K9ia",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168480,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "OK"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 5,
+    "total_tokens": 38,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 33,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 5,
+        "totalTokenCount": 38,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 33
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 33,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 5,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}
+
+--- RAW#055 [oai_extra_cache_type:gemini-4-argon] POST https://4sapi.org/v1/chat/completions -> HTTP 200 
+>>> REQ:
+{
+  "model": "gemini-4-argon",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say OK"
+    }
+  ],
+  "cached_content": 12345
+}
+<<< RESP:
+{
+  "id": "chatcmpl-202610280621215001642798268d9d62vLk8h9m",
+  "model": "gemini-4-argon",
+  "object": "chat.completion",
+  "created": 1793168483,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "OK"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 5,
+    "total_tokens": 38,
+    "billing_usage": {
+      "source": "gemini_chat",
+      "semantic": "gemini",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 33,
+        "toolUsePromptTokenCount": 0,
+        "candidatesTokenCount": 5,
+        "totalTokenCount": 38,
+        "thoughtsTokenCount": 0,
+        "cachedContentTokenCount": 0,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 33
+          }
+        ],
+        "toolUsePromptTokensDetails": [],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ]
+      }
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "text_tokens": 33,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
+    "completion_tokens_details": {
+      "text_tokens": 5,
+      "audio_tokens": 0,
+      "image_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "input_tokens_details": null,
+    "claude_cache_creation_5_m_tokens": 0,
+    "claude_cache_creation_1_h_tokens": 0
+  }
+}

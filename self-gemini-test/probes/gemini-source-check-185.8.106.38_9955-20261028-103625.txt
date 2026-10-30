@@ -1,0 +1,694 @@
+############ 渠道总览 ############
+目标: http://185.8.106.38:9955/  time=2026-10-28 10:36:25
+计划测试: 1 个模型, 并发=3, 采样=3
+
+— model_sweep（渠道级探活）—
+  gemini-4-argon               | HTTP200 回报model=gemini-4-argon
+
+==============================================================================
+############ 探针组 —— gemini-4-argon ############
+— native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+— nonce: 1/3 MISMATCH('') MISMATCH('') MATCH
+— fields: ok=0/3 trafficType=3 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+— tools: 接受=['vertexAiSearch(HTTP503)', 'zzFakeTool(HTTP503)', 'fileSearch(HTTP503)', 'urlContext(HTTP503)', 'google_search', 'codeExecution'] 严格拒绝=['vertexRagStore']
+— grounding: HTTP503
+— capability: 工具调用=FAIL(None) json_schema=FAIL 流式=FAIL(-1ch) 多轮=OK
+— native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowing, ') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=INCONCLUSIVE(HTTP-1, 0ch) | multiturn=OK('doudou') | thoughtSignature=present
+— effort: none=None(HTTP503) | low=None(HTTP503) | high=None(HTTP503)
+— params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+— roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+— gs_scene: READ_OK('An aerial view of a busy city ')
+— errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group d | 错key HTTP401: {"error":{"code":"","message":"无效的令牌 (request id: 202610280237491105601258268d9d
+
+==============================================================================
+############ 分层判读 (VERDICT) —— gemini-4-argon ############
+⓪ 交付判定   : 🔴🔴【交付缺陷 x5】—— 以下请求-响应不对应:
+             ⟹ nonce 一致性 1/3 —— 存在响应串扰/缓存重放/空响应嫌疑（依据: 回复内容与请求内唯一随机数不对应）
+             ⟹ google_search 工具请求失败 HTTP503
+             ⟹ function calling 未触发（依据: 提供 tools 后未返回 tool_calls，代理式使用不可用）
+             ⟹ json_schema 结构化输出失效（依据: response_format=strict schema 下返回内容不满足 schema——程序化解析场景不可用）
+             ⟹ 流式输出异常（依据: stream=true 下拼接内容与请求 nonce 不对应）
+⓪b 原生交付判定: 🟢【原生端点交付合格】—— 原生 generateContent 基础能力未发现静默改写
+① 渠道判源   : 【Vertex（GCS 直连能力实证）】  置信度 medium-high
+             ├ gs_real_image=READ_OK('A flat lay of blueberry scones') （GCS直读能力实证, Developer API 架构上不具备 → +6 A类）
+             ├ gs_missing_obj=GCS原生404文本 （拉取到达真实 GCS → +2 B类）
+             ├ field_family=trafficType族(tt=3/3,st=0/3,ct=0/3) （族划分观察）
+             ├ score: vertex=8 devapi=0
+② 探针明细   :
+             ├ native: 顶层=['candidates', 'createTime', 'modelVersion', 'responseId', 'usageMetadata'] modelVersion=gemini-4-argon trafficType=ON_DEMAND serviceTier=None createTime=True thoughts=None
+             ├ fields: ok=0/3 trafficType=3 serviceTier=0 createTime=0 budget0违规=0 promptToken分布={} modelVersion={}
+             ├ tools: 接受=['vertexAiSearch(HTTP503)', 'zzFakeTool(HTTP503)', 'fileSearch(HTTP503)', 'urlContext(HTTP503)', 'google_search', 'codeExecution'] 严格拒绝=['vertexRagStore']
+             ├ grounding: HTTP503
+             ├ capability: 工具调用=FAIL(None) json_schema=FAIL 流式=FAIL(-1ch) 多轮=OK
+             ├ native_capability: tool_call=OK(name=get_weather, args={"city": "Oslo"}) | tool_callback=OK('The current weather in Oslo is snowing, ') | maxOutputTokens=OK(MAX_TOKENS) | stop=OK('ALPHA') | system=遵循 | json=OK(responseJsonSchema, '{"name": "Wang Lei", "age": 36, "job": "pilot", "c') | stream=INCONCLUSIVE(HTTP-1, 0ch) | multiturn=OK('doudou') | thoughtSignature=present
+             ├ effort: none=None(HTTP503) | low=None(HTTP503) | high=None(HTTP503)
+             ├ params: max_tokens=15: finish=length(生效) | stop=['。']: 生效 | system英文限定: 遵循 | temperature=9.9: HTTP400 {"error": {"message": "Unable to submit request because it has a temperature val
+             ├ roundtrip: OK('It is currently 7°C and snowing in Oslo ')
+             ├ gs_scene: READ_OK('An aerial view of a busy city ')
+             ├ errors: 错模型 HTTP503: {"error": {"code": "model_not_found", "message": "No available channel for model no-such-xyz-999 under group d | 错key HTTP401: {"error":{"code":"","message":"无效的令牌 (request id: 202610280237491105601258268d9d
+③ 证据-依据对照:
+             ├ files_uri=other(HTTP503)  [观测类 w=0]
+             │   依据: 未识别的 files/URI 行为: {"error": {"code": "model_not_found", "message": "No available channel for model gemini-4-argon under group default (dis
+             ├ field_family=trafficType族(tt=3/3,st=0/3,ct=0/3)  [B类 w=1]
+             │   依据: 族划分观察。官方proto一手核验(2026-10-10): traffic_type=8/create_time=12 仅定义于 Vertex proto, generativelanguage v1beta/v1alpha 均无; serviceTier/turnToken 两边 proto 均无 -> 不可归因仅记录
+             ├ gs_missing_obj=gcs_native_404  [B类 w=3]
+             │   依据: 真桶缺对象返回 GCS 原生 'No such object' 文本 —— 拉取请求到达了真实 GCS（依据: 'No such object: bucket/object' 为 GCS XML API 标准错误）
+             ├ gs_real_image=READ_OK('A flat lay of blueberry scones')  [A类 w=6]
+             │   依据: 上游真实拉取并理解了 GCS 公开对象 —— GCS 直读能力实证（依据: Developer API 架构上不支持裸 gs:// 直读，需 Files 注册；此能力仅 Vertex 原生具备。真图+正确描述无法靠改字段伪造）
+             ├ gs_real_scene=READ_OK('An aerial view of a busy city ')  [观测类 w=0]
+             │   依据: 第二张真实 GCS 图读取成功（依据: 与 scones 同桶的公开对象，描述与真图内容一致；仅作 GCS 直读一致性复核，不重复计分）
+             ├ error_leak=distributor  [B类 w=1]
+             │   依据: 渠道自述从上级分销商(distributor)进货 —— 链路存在中间层（依据: 错误文案自带标记）
+
+==============================================================================
+############ 原始请求响应报文 (共43条) ############
+--- RAW#001 [sweep:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly: PONG"}]}
+<<< RESP: {"id":"chatcmpl-202610280236319087426228268d9d6jhLLO1WP","model":"gemini-4-argon","object":"chat.completion","created":1793154997,"choices":[{"index":0,"message":{"role":"assistant","content":"PONG"},"finish_reason":"stop"}],"usage":{"prompt_tokens":37,"completion_tokens":6,"total_tokens":43,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":37,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#002 [native:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "OK",
+            "thoughtSignature": "AY89a1+glI7LadWs/6wI0XkmFpT22hCIy6eEH1/K77KGot0W3G43JAL2NJ/2K/wKqDTRgEZTJFs31/9lcN7QVEpoAp2D9FeWmfO+apC6m9FG3701hw=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 33,
+    "candidatesTokenCount": 5,
+    "totalTokenCount": 38,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 33
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:36:39.691807Z",
+  "responseId": "t1_hat-cKrTapt8Pko3IqQY"
+}
+
+
+--- RAW#003 [probeB:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://generativelanguage.googleapis.com/v1beta/files/probe-fake-123", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237119759343018268d9d6WMdLZnhr)","type":"new_api_error"}}
+
+--- RAW#004 [fields:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237119766218878268d9d64arIhKnX)","type":"new_api_error"}}
+
+--- RAW#005 [nonce:gemini-4-argon#1] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 82da642872020dd7"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237119819861558268d9d6TQarUEeg)","type":"new_api_error"}}
+
+--- RAW#006 [fields:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237119962569258268d9d6DHUgrPBD)","type":"new_api_error"}}
+
+--- RAW#007 [fields:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "Say OK"}]}], "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237119968393008268d9d6qnz1zdZ8)","type":"new_api_error"}}
+
+--- RAW#008 [probeC1:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://probe-fake-bucket-xyz/img.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237125386367618268d9d6byYNxT39)","type":"new_api_error"}}
+
+--- RAW#009 [nonce:gemini-4-argon#2] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: ef58da4bcaa95232"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237125427854998268d9d6pKRhTJ0a)","type":"new_api_error"}}
+
+--- RAW#010 [tools:gemini-4-argon:vertexAiSearch] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexAiSearch": {}}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237125539871908268d9d6143jrMTB)","type":"new_api_error"}}
+
+--- RAW#011 [tools:gemini-4-argon:vertexRagStore] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 400 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"vertexRagStore": {}}]}
+<<< RESP: {"error":{"message":"Invalid JSON payload received. Unknown name \"vertexRagStore\" at 'tools[0]': Cannot find field.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#012 [probeC2:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 404 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/nonexistent-xyz-987.jpg", "mimeType": "image/jpeg"}}]}]}
+<<< RESP: {"error":{"message":"No such object: cloud-samples-data/generative-ai/image/***.jpg","type":"upstream_error","param":"","code":404}}
+
+--- RAW#013 [tools:gemini-4-argon:zzFakeTool] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"zzFakeTool": {}}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237153750317738268d9d6lhqYfI28)","type":"new_api_error"}}
+
+--- RAW#014 [probeC3:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/scones.jpg", "mimeType": "image/jpeg"}}, {"text": "What is in this image? One short phrase."}]}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237158421241198268d9d6YeCjOO4N)","type":"new_api_error"}}
+
+--- RAW#015 [tools:gemini-4-argon:fileSearch] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"fileSearch": {}}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237159395558808268d9d637a14cx6)","type":"new_api_error"}}
+
+--- RAW#016 [tools:gemini-4-argon:urlContext] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"urlContext": {}}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237165179803548268d9d6cEmWXg4r)","type":"new_api_error"}}
+
+--- RAW#017 [nonce:gemini-4-argon#3] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Reply with exactly this token and nothing else: 457d206bcec16734"}]}
+<<< RESP: {"id":"chatcmpl-202610280237131228094578268d9d6ci7uABJb","model":"gemini-4-argon","object":"chat.completion","created":1793155040,"choices":[{"index":0,"message":{"role":"assistant","content":"457d206bcec16734"},"finish_reason":"stop"}],"usage":{"prompt_tokens":55,"completion_tokens":18,"total_tokens":73,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":55,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#018 [grounding:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"text": "What is the current CEO of Google? One line."}]}], "tools": [{"google_search": {}}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237206930185278268d9d69hudi6mt)","type":"new_api_error"}}
+
+--- RAW#019 [cap_tool:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 429 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}], "tools": [{"type": "function", "function": {"name": "get_weather", "description": "Get weather", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}}]}
+<<< RESP: {"error":{"message":"Resource has been exhausted (e.g. check quota).","type":"upstream_error","param":"","code":429}}
+
+--- RAW#020 [cap_json:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}], "response_format": {"type": "json_schema", "json_schema": {"name": "p", "strict": true, "schema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"], "additionalProperties": false}}}}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237229538212518268d9d6QaMbr5QH)","type":"new_api_error"}}
+
+--- RAW#021 [probeC3:gemini-4-argon#retry2] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/scones.jpg", "mimeType": "image/jpeg"}}, {"text": "What is in this image? One short phrase."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "A flat lay of blueberry scones, coffee, fresh blueberries, and pink peonies.",
+            "thoughtSignature": "AY89a196OKHJNMxTiQTUIX4CT/qlvMqYk6qFnm1iZ7TT/KZQKZLTRSGX9sxnSkyqVKkGEEOub7RJ80JF5qyzocf7c11vbexrRPA9PqnWHbSwUG567A=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1123,
+    "candidatesTokenCount": 21,
+    "totalTokenCount": 1144,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1080
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 21
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:18.963865Z",
+  "responseId": "3l_hapnqOp3-s8IPitnF-AE"
+}
+
+
+--- RAW#022 [tools:gemini-4-argon:google_search] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"google_search": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a19knezEXfNWxtEftMNEeBsscF12JwqRL6zyZOoTFN66HwL+WbMlGe+UKYEML/f/tpzNiJ1T2XLr56daJSStHWr4hxHTDpiWypfWnSb38/vrhw=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 209,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 222,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 209
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:17.274384Z",
+  "responseId": "3V_hatDfELikotQPwrKyyQ8"
+}
+
+
+--- RAW#023 [cap_multi:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "My ox is named Doudou. Remember."}, {"role": "assistant", "content": "Doudou, noted!"}, {"role": "user", "content": "Ox name? One word."}]}
+<<< RESP: {"id":"chatcmpl-20261028023724785250478268d9d64M0YP4ou","model":"gemini-4-argon","object":"chat.completion","created":1793155047,"choices":[{"index":0,"message":{"role":"assistant","content":"Doudou"},"finish_reason":"stop"}],"usage":{"prompt_tokens":63,"completion_tokens":7,"total_tokens":70,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":63,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#024 [probeC3b:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "gs://cloud-samples-data/generative-ai/image/city-street.png", "mimeType": "image/png"}}, {"text": "What is in this image? One short phrase."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "An aerial view of a busy city street with the words \"WISH YOU WERE HERE\" painted in pink on the road.",
+            "thoughtSignature": "AY89a1/bAKyGZZIC7MoD+fF5M76HhZztPubo2T1HjIF1MSX+MURfRvwmlCtyUn8ijXPmCi09eRqQiEXgswULiSXruaMNQ236VykQqHp4iBUQVbTzxQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1143,
+    "candidatesTokenCount": 28,
+    "totalTokenCount": 1171,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1100
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 28
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:24.503849Z",
+  "responseId": "5F_haqngHpipq8YPvsS0gAo"
+}
+
+
+--- RAW#025 [probeC4:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 503 
+>>> REQ: {"contents": [{"parts": [{"fileData": {"fileUri": "https://storage.googleapis.com/nonexistent-bucket-abc123-xyz/q.png", "mimeType": "image/png"}}]}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280237287906385718268d9d6T1b7Bg3d)","type":"new_api_error"}}
+
+--- RAW#026 [tools:gemini-4-argon:codeExecution] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"parts": [{"text": "hi"}]}], "tools": [{"codeExecution": {}}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+            "thoughtSignature": "AY89a18ljSAWXN2uP8O3edNJmgmZtUinFzWXodRZOoOmThy+XLcTOiC9ggZphhWfhejmltNWSSQvVmKjCs5I2/f/3ypyiYIvoggQUv91Qa7/jyaq"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 202,
+    "candidatesTokenCount": 13,
+    "totalTokenCount": 215,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 202
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:27.876916Z",
+  "responseId": "51_havTCNeDWpt8P2Ofo-Ac"
+}
+
+
+--- RAW#027 [ncap_tool:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}], "toolConfig": {"functionCallingConfig": {"mode": "ANY", "allowedFunctionNames": ["get_weather"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "city": "Oslo"
+              },
+              "id": "call_234488"
+            },
+            "thoughtSignature": "AY89a19MvQRppjh08X9pY7R/hrfwZ1b5/Lw7zYeGrjTp+w84/Oclpawm3Cc48sA83wNjaG9OOPUaqmExk2jF22qAnSWzW7LRxlNiEnUnu8qKN62zcQ=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 99,
+    "candidatesTokenCount": 23,
+    "totalTokenCount": 122,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 99
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 23
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:28.233004Z",
+  "responseId": "6F_haqycDtCaotQP84CSyQ8"
+}
+
+
+--- RAW#028 [param_mt:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Count from 1 to 100, digits separated by commas."}], "max_tokens": 15}
+<<< RESP: {"id":"chatcmpl-202610280237305357152508268d9d6wSYtRPJp","model":"gemini-4-argon","object":"chat.completion","created":1793155053,"choices":[{"index":0,"message":{"role":"assistant","content":"Here are the numbers from 1 to 10"},"finish_reason":"length"}],"usage":{"prompt_tokens":46,"completion_tokens":15,"total_tokens":61,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":46,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#029 [ncap_callback:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo? Use the get_weather tool."}]}, {"role": "model", "parts": [{"functionCall": {"name": "get_weather", "args": {"city": "Oslo"}, "id": "call_234488"}, "thoughtSignature": "AY89a19MvQRppjh08X9pY7R/hrfwZ1b5/Lw7zYeGrjTp+w84/Oclpawm3Cc48sA83wNjaG9OOPUaqmExk2jF22qAnSWzW7LRxlNiEnUnu8qKN62zcQ=="}]}, {"role": "user", "parts": [{"functionResponse": {"name": "get_weather", "response": {"temp_c": 7, "condition": "snow", "humidity": 88}, "id": "call_234488"}}]}], "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a city.", "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The current weather in Oslo is snowing, with a temperature of 7°C and 88% humidity.",
+            "thoughtSignature": "AY89a19Rg8UGHbtZrU0XRB1RDtxj7GIS7XYz+j8NEOxSU4H9CCWoyBogz1T23gOL8pIh4+NTgs4b6179BfLE7LqHLB5Qu9JDPrl74IrOAkIq0nAeRg=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 151,
+    "candidatesTokenCount": 28,
+    "totalTokenCount": 179,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 151
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 28
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:32.416882Z",
+  "responseId": "7F_havK4GYvBsbwP_p7RkAI"
+}
+
+
+--- RAW#030 [param_stop:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "用一句话介绍北京。"}], "stop": ["。"], "reasoning_effort": "low"}
+<<< RESP: {"id":"chatcmpl-202610280237341639475188268d9d6WhaeAKVw","model":"gemini-4-argon","object":"chat.completion","created":1793155058,"choices":[{"index":0,"message":{"role":"assistant","content":"北京是一座拥有三千多年历史、完美融合了皇家古韵与现代繁华的中国首都"},"finish_reason":"stop"}],"usage":{"prompt_tokens":36,"completion_tokens":26,"total_tokens":62,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":36,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#031 [ncap_max:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Count from 1 to 100, digits separated by commas."}]}], "generationConfig": {"maxOutputTokens": 15}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "1, 2, 3, 4,",
+            "thoughtSignature": "AY89a1+q6YJB/xNG1nb+HDLFkSD2cyfVYw4c0Avh0RB4IgS9JekkhsqP2cX7fZi/l1S0ly/K6odVSSZT0e8rw8BzIi4WDQM/jAIDbSFeQmzn4WTZvg=="
+          }
+        ]
+      },
+      "finishReason": "MAX_TOKENS",
+      "continuationToken": "AY89a1/6EBB2IiQpkjA0vJam3+9zU7beyUhSQnQx4SlF3q3Oi6ZRnu1oYbikAJ7Dog2280fbF94ewdfFUq8QTiQzcjqk5ltUOWL+SHmqpS++GH32XgQsZjK619L0xGS3ZqapuoaTkKCBnTdYF1ISdMK76EIgJX4J+CuMho4F9FAHm4eHD3BxG0sAUA=="
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 46,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 61,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 46
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:36.989197Z",
+  "responseId": "8F_hao2wPKj8pt8P3PqDqA0"
+}
+
+
+--- RAW#032 [param_sys:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "system", "content": "You must answer in English only, always."}, {"role": "user", "content": "你叫什么名字？一句话。"}]}
+<<< RESP: {"id":"chatcmpl-202610280237386832047778268d9d6wv8yukco","model":"gemini-4-argon","object":"chat.completion","created":1793155062,"choices":[{"index":0,"message":{"role":"assistant","content":"My name is Gemini 4 Argon, a large language model built by Google."},"finish_reason":"stop"}],"usage":{"prompt_tokens":73,"completion_tokens":20,"total_tokens":93,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":73,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#033 [param_temp:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 400 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "hi"}], "temperature": 9.9}
+<<< RESP: {"error":{"message":"Unable to submit request because it has a temperature value of 9.9 but the supported range is from 0 (inclusive) to 2.0001 (exclusive). Update the value and try again.","type":"upstream_error","param":"","code":400}}
+
+--- RAW#034 [ncap_stop:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat this exact string and nothing else: ALPHA|OMEGA"}]}], "generationConfig": {"stopSequences": ["|"]}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "ALPHA",
+            "thoughtSignature": "AY89a1+CoLqMdXsuh/poH0+YIy+/FDQBLLkpyG0mGdvdTSso6/fd3JNFqzvCKqs3ytKygzwRXcJ25LW89jCZiQGspx9Q+mxq90GxmFFEeDUWzHYCnA=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 43,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 51,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 43
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:40.309434Z",
+  "responseId": "9F_harrxEp3-s8IPitnF-AE"
+}
+
+
+--- RAW#035 [cap_roundtrip:gemini-4-argon] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 200 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "Weather in Oslo? Use tool."}, {"role": "assistant", "content": null, "tool_calls": [{"id": "call_probe_1", "type": "function", "function": {"name": "get_weather", "arguments": "{\"city\": \"Oslo\"}"}}]}, {"role": "tool", "tool_call_id": "call_probe_1", "content": "{\"temp_c\": 7, \"condition\": \"snow\", \"humidity\": 88}"}, {"role": "user", "content": "Summarize the weather in one short sentence."}]}
+<<< RESP: {"id":"chatcmpl-202610280237442650753998268d9d6MVlepWQC","model":"gemini-4-argon","object":"chat.completion","created":1793155067,"choices":[{"index":0,"message":{"role":"assistant","content":"It is currently 7°C and snowing in Oslo with 88% humidity."},"finish_reason":"stop"}],"usage":{"prompt_tokens":104,"completion_tokens":23,"total_tokens":127,"prompt_tokens_details":{"cached_tokens":0,"text_tokens":104,"audio_tokens":0,"image_tokens":0},"completion_tokens_details":{"text_tokens":0,"audio_tokens":0,"reasoning_tokens":0},"input_tokens":0,"output_tokens":0,"input_tokens_details":null,"claude_cache_creation_5_m_tokens":0,"claude_cache_creation_1_h_tokens":0}}
+
+--- RAW#036 [err_model] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "no-such-xyz-999", "messages": [{"role": "user", "content": "hi"}]}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model no-such-xyz-999 under group default (distributor) (request id: 202610280237485449926328268d9d6aiyVksEU)","type":"new_api_error"}}
+
+--- RAW#037 [ncap_sys:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"systemInstruction": {"parts": [{"text": "You must answer in English only, always."}]}, "contents": [{"role": "user", "parts": [{"text": "你叫什么名字？一句话。"}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "My name is Gemini 4 Argon, a large language model built by Google.",
+            "thoughtSignature": "AY89a1+m4Re195zBZHDWGjzieEI+FE2rJVZpyTH7QPM/AKvjCt9v4JFj9+5P5Nz38FZUW172YTN4OzhEQaH+ug8VUAN8Hzs1cfiY/HpvZPDiOWgzyA=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 20,
+    "totalTokenCount": 93,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 73
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 20
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:47.485739Z",
+  "responseId": "-1_hauvSHa2Vpt8PppuQuQU"
+}
+
+
+--- RAW#038 [ncap_json:gemini-4-argon:responseJsonSchema] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Extract: 'Wang Lei, 36, pilot in Xi'an.'"}]}], "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer"}, "job": {"type": "string"}, "city": {"type": "string"}}, "required": ["name", "age", "job", "city"]}}}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\"name\": \"Wang Lei\", \"age\": 36, \"job\": \"pilot\", \"city\": \"Xi'an\"}",
+            "thoughtSignature": "AY89a1+6+W4qt9ZRC3gm9PUttiaLjCWa8fFgH/r3nGzAtlUvZQGz85vtLSjkeYDrV1nKDITOKAq4QjmTc3mJHrATSbOKXWSKGJCB280U6MsWAWNZiw=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 257,
+    "candidatesTokenCount": 44,
+    "totalTokenCount": 301,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 257
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 44
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:37:51.801295Z",
+  "responseId": "_1_hao_0MOTmwtQPvufaoAk"
+}
+
+
+--- RAW#039 [ncap_stream:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:streamGenerateContent?alt=sse -> HTTP -1 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "Repeat exactly this token and nothing else: ST-5fbb78230d4a68a0-END"}]}]}
+<<< RESP: Remote end closed connection without response
+
+--- RAW#040 [ncap_multi:gemini-4-argon] POST http://185.8.106.38:9955/v1beta/models/gemini-4-argon:generateContent -> HTTP 200 
+>>> REQ: {"contents": [{"role": "user", "parts": [{"text": "My ox is named Doudou. Remember."}]}, {"role": "model", "parts": [{"text": "Doudou, noted!"}]}, {"role": "user", "parts": [{"text": "Ox name? One word."}]}]}
+<<< RESP: {
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Doudou",
+            "thoughtSignature": "AY89a18SA0MkRdUiFl8AaL3s+N/pYBDzu6cfI2JaM2+lF8n2nQsir1GA2mzXgG7Ek4rXvQ6kLD8IOS7hXwI1Zwo6jRKtFCOwd57hJKRhnBFfIF9sBw=="
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 63,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 70,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 63
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ]
+  },
+  "modelVersion": "gemini-4-argon",
+  "createTime": "2026-10-28T02:38:02.747933Z",
+  "responseId": "CmDhap3TLcrAvr0Pn_3ugAE"
+}
+
+
+--- RAW#041 [effort:gemini-4-argon:none] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "none"}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280238315322332238268d9d6WV7dISeR)","type":"new_api_error"}}
+
+--- RAW#042 [effort:gemini-4-argon:low] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "low"}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280238321016134708268d9d62FwcxB4Z)","type":"new_api_error"}}
+
+--- RAW#043 [effort:gemini-4-argon:high] POST http://185.8.106.38:9955/v1/chat/completions -> HTTP 503 
+>>> REQ: {"model": "gemini-4-argon", "messages": [{"role": "user", "content": "What is 53*59? Just the number."}], "reasoning_effort": "high"}
+<<< RESP: {"error":{"code":"model_not_found","message":"No available channel for model gemini-4-argon under group default (distributor) (request id: 202610280238326685757758268d9d6OXQumi72)","type":"new_api_error"}}
