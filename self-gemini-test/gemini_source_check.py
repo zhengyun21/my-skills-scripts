@@ -11,6 +11,10 @@ gemini_source_check.py — Gemini 中转渠道纯度/判源测试
 仅用标准库。
 """
 import argparse, base64, json, os, ssl, sys, threading, time, secrets, socket
+# Windows 控制台/重定向默认 GBK, 打不出 ⓪/🟢 等字符会崩 -> 强制 UTF-8 输出
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -18,6 +22,11 @@ from urllib.parse import urlparse
 import urllib.request, urllib.error
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36"
+OFFICIAL_HOST = "generativelanguage.googleapis.com"
+OAI_PATH = "/v1/chat/completions"  # 官方端点在 main() 改为 /v1beta/openai/chat/completions
+
+def is_official(base):
+    return urlparse(base).netloc == OFFICIAL_HOST
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
@@ -75,8 +84,13 @@ def log_raw(tag, method, url, req_body, status, resp_body, note=""):
 def http(base, method, path, payload=None, key="", timeout=120, headers=None, tag=""):
     url = base.rstrip("/") + path
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None
-    h = {"Content-Type": "application/json; charset=utf-8", "Authorization": "Bearer " + key,
+    h = {"Content-Type": "application/json; charset=utf-8",
          "User-Agent": UA, "Accept": "application/json"}
+    # 官方原生端点拒 Bearer+API key(期望 OAuth) -> 用 x-goog-api-key; 官方 OpenAI 兼容层与中转渠道仍用 Bearer
+    if is_official(base) and "/openai/" not in path:
+        h["x-goog-api-key"] = key
+    else:
+        h["Authorization"] = "Bearer " + key
     if headers: h.update(headers)
     r = urllib.request.Request(url, data=body, method=method, headers=h)
     raw, status = None, -1
@@ -126,7 +140,7 @@ def _json_from_text(txt):
 def chat(base, key, model, payload_extra=None, timeout=120, tag="chat"):
     p = {"model": model, "messages": [{"role": "user", "content": "hi"}]}
     p.update(payload_extra or {})
-    return http(base, "POST", "/v1/chat/completions", p, key, timeout, tag=tag)
+    return http(base, "POST", OAI_PATH, p, key, timeout, tag=tag)
 
 def gen(base, key, model, payload, timeout=120, tag="gen", api_prefix=None):
     path = (api_prefix or "/v1beta/models") + f"/{model}:generateContent"
@@ -149,8 +163,12 @@ def gen_stream(base, key, model, payload, timeout=120, tag="gen_stream", api_pre
     prefix = api_prefix or "/v1beta/models"
     url = base.rstrip("/") + prefix + f"/{model}:streamGenerateContent?alt=sse"
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    h = {"Content-Type": "application/json; charset=utf-8", "Authorization": "Bearer " + key,
+    h = {"Content-Type": "application/json; charset=utf-8",
          "User-Agent": UA, "Accept": "text/event-stream"}
+    if is_official(base):
+        h["x-goog-api-key"] = key
+    else:
+        h["Authorization"] = "Bearer " + key
     r = urllib.request.Request(url, data=body, method="POST", headers=h)
     chunks, err, status = [], "", -1
     try:
@@ -175,9 +193,14 @@ def gen_stream(base, key, model, payload, timeout=120, tag="gen_stream", api_pre
 # ---------------- 探针 ----------------
 
 def probe_sweep(base, key, model, S):
-    """渠道级探活 + 回报模型名一致性"""
-    code, d = chat(base, key, model, {"messages": [{"role": "user", "content": "Reply with exactly: PONG"}]},
-                   tag=f"sweep:{model}")
+    """渠道级探活 + 回报模型名一致性 (429/5xx/网络错误退避重试, 瞬时限流不应误判探活失败)"""
+    code, d = -1, {}
+    for i in range(4):
+        code, d = chat(base, key, model, {"messages": [{"role": "user", "content": "Reply with exactly: PONG"}]},
+                       tag=f"sweep:{model}" if i == 0 else f"sweep:{model}#retry{i+1}")
+        if code == 200 or (400 <= code < 500 and code != 429):
+            break
+        if i < 3: time.sleep(20 * (i + 1))
     if code == 200:
         said = (d.get("choices", [{}])[0].get("message", {}) or {}).get("content", "")
         echo = d.get("model", "")
@@ -557,17 +580,30 @@ def probe_files(base, key, model, S):
             "疑似 generativelanguage URL 抓取器词汇 → 降级为中性观测, 不计分）", 0, "观测")
         S["url_error"] = True
 
-def probe_tools(base, key, model, S):
-    """tools[] proto 指纹 v2 —— 正确形状 retrieval.* 探针 + as 独占负证据 + 对照
+def probe_tools(base, key, model, S, datastore=None, rag_corpus=None):
+    """tools[] proto 指纹 v3 —— 接受性探测 + Vertex 独占工具 E2E 强制调用验证
 
     官方 discovery 一手核验(2026-10-27, aiplatform v1beta1 vs generativelanguage v1beta):
       - Vertex Tool 独有: retrieval{vertexAiSearch, vertexRagStore, externalApi}、enterpriseWebSearch、parallelAiSearch
       - generativelanguage Tool 独有: fileSearch、mcpServers
     旧版把 vertexAiSearch/vertexRagStore 发在 Tool 顶层 —— 该写法对 Vertex 本身非法（正确位置是
     tools[0].retrieval.*），真 Vertex 也会报 Cannot find field，曾导致误判 devapi，已废弃。
+
+    v3(2026-11-11, 官方文档一手核验): 接受≠执行 —— 翻译层白名单可放行工具名并返回 200
+    （sui-xiang 实测放行全部 retrieval.* 而无任何检索发生），但 FIELD 拒绝文本不可伪造。
+    因此 Vertex 独占工具被接受后立即追加 E2E 检索诱导请求，仅当响应携带 Vertex 独占
+    grounding 元数据才算端到端执行:
+      - vertexAiSearch: groundingChunks[].retrievedContext / retrievalQueries（仅 Vertex proto 定义,
+        google_search 重路由填不出 -> A类）
+      - vertexRagStore: 同上
+      - enterpriseWebSearch/parallelAiSearch: webSearchQueries / groundingChunks[].web
+        （与 devapi google_search 响应字段重叠, 重路由可伪造 -> B类）
+    文档确认 grounding 元数据可能因低相关缺席 -> accepted_no_grounding 不判造假但也不构成 Vertex 证据。
     """
     if not S["native_prefix"]: return
     N = S["native_prefix"]
+    ds = datastore if datastore is not None else DEFAULT_VAIS_DATASTORE
+    rc = rag_corpus if rag_corpus is not None else DEFAULT_RAG_CORPUS
 
     def send(name, tool, retry=False):
         fn = gen_retry if retry else gen
@@ -580,6 +616,25 @@ def probe_tools(base, key, model, S):
         if "Cannot find field" in msg or "Unknown name" in msg: return "unknown_field"
         if "proto is invalid" in msg or "FIELD_INVALID" in msg: return "proto_invalid"
         return f"http{code}"
+
+    def e2e_check(tag, tool, prompt, expect_ctx):
+        """E2E 强制调用: 检索诱导提示词 + Vertex 独占 grounding 元数据硬标准。
+        expect_ctx=True 认 retrievedContext/retrievalQueries; False 认 webSearchQueries/groundingChunks[].web"""
+        code, d = gen_retry(base, key, model,
+            {"contents": [{"parts": [{"text": prompt}]}], "tools": [tool]},
+            tag=f"tools_e2e:{model}:{tag}", api_prefix=N)
+        if code != 200:
+            return f"inconclusive(HTTP{code})"
+        gm = ((d.get("candidates") or [{}])[0].get("groundingMetadata") or {})
+        ans = parts_text(d)[:60]
+        if expect_ctx:
+            has_ctx = any(c.get("retrievedContext") for c in (gm.get("groundingChunks") or []))
+            if has_ctx or gm.get("retrievalQueries"):
+                return f"E2E_OK({ans!r})"
+        else:
+            if gm.get("webSearchQueries") or any(c.get("web") for c in (gm.get("groundingChunks") or [])):
+                return f"E2E_OK({ans!r})"
+        return f"accepted_no_grounding({ans!r})"
 
     res = {}
     # Vertex 正证据组（正确形状; gen_retry 防瞬时 5xx 翻转分类）
@@ -598,7 +653,7 @@ def probe_tools(base, key, model, S):
     res["googleSearchRetrieval"] = "deprecated_msg" if (gcode == 400 and "not supported" in gmsg) else classify(gcode, gmsg)
     # 版本指纹组（Vertex 独占 Tool 字段, 仅记录不计分）
     res["enterpriseWebSearch"] = classify(*send("entWebSearch", {"enterpriseWebSearch": {}}))
-    res["parallelAiSearch"] = classify(*send("parallelAiSearch", {"parallelAiSearch": {}}))
+    res["parallelAiSearch"] = classify(*send("parAiSearch", {"parallelAiSearch": {}}))
 
     knownset = ",".join(k for k in ("urlContext", "google_search", "codeExecution") if res[k] == "ok") or "无"
     S["tools"][model] = (f"vertex_retrieval={res['retrieval.vertexAiSearch']}/{res['retrieval.vertexRagStore']}/{res['retrieval.externalApi']} "
@@ -611,16 +666,51 @@ def probe_tools(base, key, model, S):
             "⚠ tools 探针对本渠道作废：捏造的 zzFakeTool 也被接受 —— 翻译层静默剥离 tools，接受≠认识（依据: 无对照的'接受'不可采信）", 0, "作废")
         return
 
+    # E2E 强制调用验证: 仅对被接受的 Vertex 独占工具追加（对照失效时不浪费请求）
+    e2e = {}
+    if res["retrieval.vertexAiSearch"] == "ok":
+        e2e["vais"] = e2e_check("vais", {"retrieval": {"vertexAiSearch": {"datastore": ds}}},
+                                "Search the datastore and summarize what you find in one line.", expect_ctx=True)
+    if res["retrieval.vertexRagStore"] == "ok":
+        e2e["rag"] = e2e_check("rag", {"retrieval": {"vertexRagStore": {"ragResources": [{"ragCorpus": rc}]}}},
+                               "Search the corpus and summarize what you find in one line.", expect_ctx=True)
+    if res["enterpriseWebSearch"] == "ok":
+        e2e["ent"] = e2e_check("ent", {"enterpriseWebSearch": {}},
+                               "When is the next total solar eclipse in the United States?", expect_ctx=False)
+    if res["parallelAiSearch"] == "ok":
+        e2e["par"] = e2e_check("par", {"parallelAiSearch": {}},
+                               "Who won the most recent Formula 1 Grand Prix? Search for it.", expect_ctx=False)
+    if e2e:
+        S["tools"][model] += " e2e(" + ",".join(f"{k}={v}" for k, v in e2e.items()) + ")"
+
     rec = [k for k in ("retrieval.vertexAiSearch", "retrieval.vertexRagStore", "retrieval.externalApi")
            if res[k] in ("ok", "proto_invalid")]
     if rec:
-        add_evidence(model, "tools_vertex_retrieval=recognized(" + ",".join(f"{k}={res[k]}" for k in rec) + ")",
-            "正确形状 retrieval.* 被上游 proto 识别/校验 —— retrieval 容器(vertexAiSearch/vertexRagStore/externalApi)仅 Vertex proto 定义, "
-            "generativelanguage Tool 无 retrieval 字段且顶层写法两边皆非法; proto_invalid(FIELD_INVALID 子字段校验)更是 Vertex 校验器专属行为, "
-            "真图+正确校验文本无法靠网关改字段伪造（依据: 2026-10-27 官方 discovery 一手对比核验）", 5, "A")
+        add_evidence(model, "tools_vertex_retrieval=accepted(" + ",".join(f"{k}={res[k]}" for k in rec) + ")",
+            "正确形状 retrieval.* 被上游接受 —— 但接受≠执行: 翻译层白名单可放行工具名返回 200"
+            "（依据: 2026-11-11 官方文档一手核验 + sui-xiang 实测放行 retrieval.* 而检索未发生），"
+            "仅作观测不计分, 执行与否交由 E2E 验证", 0, "观测")
     elif res["retrieval.vertexAiSearch"] == "unknown_field" and res["retrieval.vertexRagStore"] == "unknown_field":
         add_evidence(model, "tools_vertex_retrieval=rejected(retrieval Cannot find field)",
             "retrieval 容器被 proto 拒绝 —— generativelanguage Tool 无此字段, Developer API 标志行为（依据: 官方 discovery 一手核验）", 4, "A")
+
+    # E2E 计分: retrievedContext/retrievalQueries 仅 Vertex proto 定义, 白名单层放行 200 但
+    # google_search 重路由填不出这些字段 -> A类; web 字段两边 proto 都有 -> B类
+    ctx_ok = [k for k in ("vais", "rag") if e2e.get(k, "").startswith("E2E_OK")]
+    ctx_ng = [k for k in ("vais", "rag") if e2e.get(k, "").startswith("accepted_no_grounding")]
+    web_ok = [k for k in ("ent", "par") if e2e.get(k, "").startswith("E2E_OK")]
+    if ctx_ok:
+        add_evidence(model, "tools_vertex_e2e=OK(" + ",".join(f"{k}={e2e[k]}" for k in ctx_ok) + ")",
+            "Vertex 独占工具端到端执行成功 —— groundingChunks[].retrievedContext/retrievalQueries 仅 Vertex proto 定义, "
+            "开发者 API 无法产生, 翻译层重路由到 google_search 也填不出（依据: 2026-11-11 官方文档一手核验）", 4, "A")
+    elif ctx_ng:
+        add_evidence(model, "tools_vertex_e2e=accepted_no_grounding(" + ",".join(f"{k}={e2e[k]}" for k in ctx_ng) + ")",
+            "⚠ 疑似白名单翻译层: retrieval 工具名被放行(200)但强制检索后无任何 Vertex 独占 grounding 元数据 —— "
+            "接受≠执行（依据: 官方文档确认元数据可能因低相关缺席, 不判造假, 但不构成 Vertex 证据）", 0, "观测")
+    if web_ok:
+        add_evidence(model, "tools_vertex_e2e_web=OK(" + ",".join(f"{k}={e2e[k]}" for k in web_ok) + ")",
+            "enterpriseWebSearch/parallelAiSearch 端到端执行成功（依据: webSearchQueries/groundingChunks[].web 与 devapi "
+            "google_search 响应字段重叠, 翻译层重路由可伪造 -> 降为 B 类, 与 proto 级接受证据叠加时才构成强指向）", 2, "B")
 
     if res["fileSearch"] == "unknown_field" and res["mcpServers"] == "unknown_field" and res["urlContext"] == "ok":
         add_evidence(model, "tools_as_fields=missing_strict",
@@ -633,38 +723,6 @@ def probe_tools(base, key, model, S):
     if res["googleSearchRetrieval"] == "deprecated_msg":
         add_evidence(model, "gsr_deprecated=use_google_search",
             "google_search_retrieval 被产品层禁用并提示改用 google_search —— proto 认识该字段但新版后端停用（中性观测, 不计分）", 0, "观测")
-
-def probe_vertex_retrieval(base, key, model, S, datastore=None, rag_corpus=None):
-    """E2E 真检索: proto 识别 ≠ 检索可用 —— 需要上游凭证可访问的 datastore/corpus。
-
-    只有返回 groundingChunks[].retrievedContext 或 retrievalQueries 才算 E2E_OK（+4 A类观测）;
-    权限/不存在/FIELD_INVALID 等任何失败一律 inconclusive 不计分（渠道方项目不可控, 失败≠非 Vertex）。
-    """
-    if not S["native_prefix"]: return
-    N = S["native_prefix"]
-    ds = datastore if datastore is not None else DEFAULT_VAIS_DATASTORE
-    rc = rag_corpus if rag_corpus is not None else DEFAULT_RAG_CORPUS
-    cases = []
-    if ds: cases.append(("vais", {"retrieval": {"vertexAiSearch": {"datastore": ds}}}))
-    if rc: cases.append(("rag", {"retrieval": {"vertexRagStore": {"ragResources": [{"ragCorpus": rc}]}}}))
-    outs = []
-    for name, tool in cases:
-        code, d = gen_retry(base, key, model,
-            {"contents": [{"parts": [{"text": "Summarize the retrieved document in one line."}]}],
-             "tools": [tool]}, tag=f"vretr:{model}:{name}", api_prefix=N)
-        if code != 200:
-            outs.append(f"{name}=inconclusive(HTTP{code})"); continue
-        gm = ((d.get("candidates") or [{}])[0].get("groundingMetadata") or {})
-        has_ctx = any(c.get("retrievedContext") for c in (gm.get("groundingChunks") or []))
-        has_q = bool(gm.get("retrievalQueries"))
-        if has_ctx or has_q:
-            outs.append(f"{name}=E2E_OK(ctx={has_ctx},q={has_q})")
-            add_evidence(model, f"vertex_retrieval_e2e={name}_OK",
-                "真实 datastore/corpus 检索端到端成功: retrievedContext/retrievalQueries 是 Vertex 独占检索链路特征, "
-                "开发者 API 无法产生（依据: groundingChunks[].retrievedContext+retrievalQueries 仅 Vertex proto 定义）", 4, "A")
-        else:
-            outs.append(f"{name}=accepted_no_grounding")
-    S["vertex_retrieval"][model] = " ".join(outs) if outs else "skipped(no resources)"
 
 def probe_params(base, key, model, S):
     """基础参数生效: max_tokens / stop / system prompt / temperature边界"""
@@ -774,9 +832,10 @@ def probe_capability(base, key, model, S):
     sreq = {"model": model, "stream": True, "stream_options": {"include_usage": True},
             "messages": [{"role": "user", "content": f"Repeat exactly: ST-{nonce}-END"}]}
     content, chunks, usage_seen = "", 0, False
-    rq = urllib.request.Request(base.rstrip("/") + "/v1/chat/completions",
+    rq = urllib.request.Request(base.rstrip("/") + OAI_PATH,
         data=json.dumps(sreq).encode(), method="POST",
-        headers={"Content-Type": "application/json", "Authorization": "Bearer " + key, "User-Agent": UA})
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + key, "User-Agent": UA})
     try:
         with urllib.request.urlopen(rq, timeout=120) as resp:
             for raw in resp:
@@ -1070,11 +1129,11 @@ def add_native_delivery(model, text):
 
 # 修复 probe_errors 里的调用
 def probe_errors_fixed(base, key, model, S):
-    code, d = http(base, "POST", "/v1/chat/completions",
+    code, d = http(base, "POST", OAI_PATH,
                    {"model": "no-such-xyz-999", "messages": [{"role": "user", "content": "hi"}]},
                    key, 60, tag="err_model")
     S["errors"] = f"错模型 HTTP{code}: {json.dumps(d, ensure_ascii=False)[:110]}"
-    r = urllib.request.Request(base.rstrip("/") + "/v1/chat/completions",
+    r = urllib.request.Request(base.rstrip("/") + OAI_PATH,
         data=json.dumps({"model": model, "messages": [{"role": "user", "content": "hi"}]}).encode(),
         method="POST", headers={"Content-Type": "application/json", "Authorization": "Bearer sk-wrong-key-000",
                                 "User-Agent": UA})
@@ -1128,13 +1187,22 @@ def verdict_source(model):
     if e and "vertex_only" in e[0]:
         sc("vertex", 2, "├ grounding_fields=vertex_only （grounding 响应携带 retrievalQueries/sourceFlaggingUris/ragChunk 等 Vertex 独占字段 → +2 B类）")
     e = kv.get("vertex_retrieval_e2e")
-    if e and "_OK" in e[0]:
-        sc("vertex", 4, "├ vertex_retrieval_e2e=OK （真实 datastore/corpus 检索端到端成功: retrievedContext+retrievalQueries 仅 Vertex 检索链路产生 → +4 A类）")
+    if e: lines.append(f"├ {e[0]} （旧版独立 E2E 证据, 已并入 tools_vertex_e2e → 不计分）")
     e = kv.get("tools_vertex_retrieval")
     if e and "recognized" in e[0]:
-        sc("vertex", 5, "├ tools_vertex_retrieval=recognized （正确形状 retrieval.* 被识别/FIELD_INVALID 校验 —— retrieval 容器仅 Vertex proto 定义, as 架构无法产生, 官方 proto 一手核验 → +5 A类）")
+        lines.append(f"├ {e[0]} （v3审计: 接受≠执行, 翻译层白名单可放行工具名并返回 200 → 仅观测不计分, 执行与否交由 tools_vertex_e2e 验证）")
     elif e and "rejected" in e[0]:
         sc("devapi", 4, "├ tools_vertex_retrieval=rejected （retrieval 容器 Cannot find field —— generativelanguage proto 无此字段, Developer API 标志行为, 官方 proto 一手核验 → +4 A类）")
+    e = kv.get("tools_vertex_e2e")
+    if e and "OK(" in e[0]:
+        sc("vertex", 4, "├ tools_vertex_e2e=OK （Vertex 独占工具端到端执行: groundingChunks[].retrievedContext/retrievalQueries 仅 Vertex proto 定义, "
+                        "开发者 API 无法产生且 google_search 重路由填不出 → +4 A类）")
+    elif e:
+        lines.append(f"├ {e[0]} （工具被接受但强制检索无 Vertex 独占 grounding 元数据, 接受≠执行 → 不计分, 疑似白名单翻译层）")
+    e = kv.get("tools_vertex_e2e_web")
+    if e and "OK(" in e[0]:
+        sc("vertex", 2, "├ tools_vertex_e2e_web=OK （entWebSearch/parallelAiSearch 端到端执行; webSearchQueries/web chunks 与 devapi google_search 响应重叠, "
+                        "重路由可伪造 → 降权 +2 B类, 与 proto 级接受证据叠加才构成强指向）")
     e = kv.get("tools_as_fields")
     if e and "missing_strict" in e[0]:
         sc("vertex", 2, "├ tools_as_fields=missing_strict （fileSearch/mcpServers 双拒且 urlContext 接受 —— as 独占字段缺失, Vertex 形状自洽 → +2 B类）")
@@ -1203,13 +1271,16 @@ def main():
     ap.add_argument("--vertex-rag-corpus", default=None,
                     help="E2E 真检索 ragCorpus 完整资源名; 缺省用内置 Google 文档示例（大概率 inconclusive）")
     a = ap.parse_args()
+    global OAI_PATH
+    if is_official(a.url):
+        OAI_PATH = "/v1beta/openai/chat/completions"
     host = urlparse(a.url).netloc.replace(":", "_")
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     models = [m.strip() for m in a.models.split(",") if m.strip()]
     S = {"sweep": {}, "nonce": {}, "native": {}, "fields": {}, "family": {}, "tools": {},
          "grounding": {}, "capability": {}, "native_capability": {}, "effort": {}, "params": {},
          "roundtrip": {}, "gs_scene": {}, "openai_vision": {}, "openai_tools": {},
-         "openai_stream": {}, "openai_extra": {}, "vertex_retrieval": {}, "errors": "", "native_prefix": None}
+         "openai_stream": {}, "openai_extra": {}, "errors": "", "native_prefix": None}
     import os
     os.makedirs(a.out_dir, exist_ok=True)
     outfile = f"{a.out_dir}/gemini-source-check-{host}-{ts}.txt"
@@ -1220,6 +1291,8 @@ def main():
 
     P("############ 渠道总览 ############")
     P(f"目标: {a.url}  time={datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    if is_official(a.url):
+        P("官方端点模式: 原生鉴权=x-goog-api-key, OpenAI 兼容层=/v1beta/openai/chat/completions")
     P(f"计划测试: {len(models)} 个模型, 并发={a.concurrency}, 采样={a.samples}")
 
     # 阶段1: 并发探活
@@ -1243,8 +1316,7 @@ def main():
         tasks = [lambda mm=m: probe_nonce(a.url, a.key, mm, S),
                  lambda mm=m: probe_fields(a.url, a.key, mm, S, a.samples),
                  lambda mm=m: probe_files(a.url, a.key, mm, S),
-                 lambda mm=m: probe_tools(a.url, a.key, mm, S),
-                 lambda mm=m: probe_vertex_retrieval(a.url, a.key, mm, S, a.vertex_datastore, a.vertex_rag_corpus),
+                 lambda mm=m: probe_tools(a.url, a.key, mm, S, a.vertex_datastore, a.vertex_rag_corpus),
                  lambda mm=m: probe_grounding(a.url, a.key, mm, S),
                  lambda mm=m: probe_capability(a.url, a.key, mm, S),
                  lambda mm=m: probe_native_capability(a.url, a.key, mm, S),
@@ -1259,7 +1331,7 @@ def main():
                 try: f.result()
                 except Exception as e:
                     P(f"  [probe异常] {e}")
-        for k in ["nonce", "fields", "tools", "vertex_retrieval", "grounding", "capability", "native_capability", "effort", "params", "roundtrip", "gs_scene", "openai_vision", "openai_tools", "openai_stream", "openai_extra"]:
+        for k in ["nonce", "fields", "tools", "grounding", "capability", "native_capability", "effort", "params", "roundtrip", "gs_scene", "openai_vision", "openai_tools", "openai_stream", "openai_extra"]:
             if m in S.get(k, {}):
                 P(f"— {k}: {S[k][m]}")
         P(f"— errors: {S['errors']}")
@@ -1275,7 +1347,7 @@ def main():
         P(f"① 渠道判源   : 【{src}】  置信度 {conf}")
         for ln in lines: P(f"             {ln}")
         P(f"② 探针明细   :")
-        for k in ["native", "fields", "tools", "vertex_retrieval", "grounding", "capability", "native_capability", "effort", "params", "roundtrip", "gs_scene", "openai_vision", "openai_tools", "openai_stream", "openai_extra"]:
+        for k in ["native", "fields", "tools", "grounding", "capability", "native_capability", "effort", "params", "roundtrip", "gs_scene", "openai_vision", "openai_tools", "openai_stream", "openai_extra"]:
             if m in S.get(k, {}): P(f"             ├ {k}: {S[k][m]}")
         P(f"             ├ errors: {S['errors']}")
         P("③ 证据-依据对照:")
