@@ -14,3 +14,5 @@ ai-news-20260725/
 .DS_Store
 Thumbs.db
 *.log
+__pycache__/
+*.pyc
