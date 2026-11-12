@@ -33,6 +33,7 @@ CTX.verify_mode = ssl.CERT_NONE
 
 RAW_LOG = []          # 原始报文区
 RAW_LOCK = threading.Lock()
+AUTH_MODE = ["bearer"]  # 原生端点鉴权方式: bearer | xgoog (probe_native 探测后回写, 仿官方行为的代理要求 x-goog-api-key)
 EVIDENCE = {}         # model -> [evidence lines]
 DELIVERY = {}         # model -> [delivery findings]
 NATIVE_DELIVERY = {}  # model -> [原生 generateContent 能力缺陷]
@@ -86,8 +87,11 @@ def http(base, method, path, payload=None, key="", timeout=120, headers=None, ta
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None
     h = {"Content-Type": "application/json; charset=utf-8",
          "User-Agent": UA, "Accept": "application/json"}
-    # 官方原生端点拒 Bearer+API key(期望 OAuth) -> 用 x-goog-api-key; 官方 OpenAI 兼容层与中转渠道仍用 Bearer
+    # 官方原生端点拒 Bearer+API key(期望 OAuth) -> 用 x-goog-api-key; 官方 OpenAI 兼容层与中转渠道仍用 Bearer;
+    # 仿官方原生行为的第三方代理(非官方 host)由 AUTH_MODE 决定, probe_native 探测后回写
     if is_official(base) and "/openai/" not in path:
+        h["x-goog-api-key"] = key
+    elif ":generateContent" in path and AUTH_MODE[0] == "xgoog":
         h["x-goog-api-key"] = key
     else:
         h["Authorization"] = "Bearer " + key
@@ -165,7 +169,7 @@ def gen_stream(base, key, model, payload, timeout=120, tag="gen_stream", api_pre
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     h = {"Content-Type": "application/json; charset=utf-8",
          "User-Agent": UA, "Accept": "text/event-stream"}
-    if is_official(base):
+    if is_official(base) or AUTH_MODE[0] == "xgoog":
         h["x-goog-api-key"] = key
     else:
         h["Authorization"] = "Bearer " + key
@@ -226,21 +230,29 @@ def probe_nonce(base, key, model, S):
         add_delivery(model, f"nonce 一致性 {ok}/3 —— 存在响应串扰/缓存重放/空响应嫌疑（依据: 回复内容与请求内唯一随机数不对应）")
 
 def probe_native(base, key, model, S):
-    """原生端点发现"""
+    """原生端点发现; Bearer 被拒(401/403)时自动切换 x-goog-api-key 重试并记住（仿官方原生行为的代理）"""
     for prefix in ["/v1beta/models", "/v1/models"]:
-        code, d = gen(base, key, model, {"contents": [{"parts": [{"text": "Say OK"}]}]},
-                      tag=f"native:{model}", api_prefix=prefix)
-        if code == 200:
-            S["native_prefix"] = prefix
-            top, um = set(d.keys()), d.get("usageMetadata", {})
-            mv = d.get("modelVersion", "")
-            S["native"][model] = (f"顶层={sorted(top)} modelVersion={mv} "
-                                  f"trafficType={um.get('trafficType')} serviceTier={um.get('serviceTier')} "
-                                  f"createTime={'createTime' in top} thoughts={um.get('thoughtsTokenCount')}")
-            if mv and mv != model:
-                add_evidence(model, f"model_version_remapped={mv}",
-                    f"渠道把请求模型 {model} 路由到上游变体 {mv} —— 模型名被中间层改写，交付物与请求名不符（-tiered 类后缀常见于聚合分发层）", 2, "flag")
-            return True
+        for mode in ([AUTH_MODE[0]] if AUTH_MODE[0] == "xgoog" else ["bearer", "xgoog"]):
+            prev = AUTH_MODE[0]
+            AUTH_MODE[0] = mode
+            code, d = gen(base, key, model, {"contents": [{"parts": [{"text": "Say OK"}]}]},
+                          tag=f"native:{model}", api_prefix=prefix)
+            AUTH_MODE[0] = prev
+            if code == 200:
+                AUTH_MODE[0] = mode
+                S["native_prefix"] = prefix
+                S["native_auth"] = "x-goog-api-key" if mode == "xgoog" else "bearer"
+                top, um = set(d.keys()), d.get("usageMetadata", {})
+                mv = d.get("modelVersion", "")
+                S["native"][model] = (f"顶层={sorted(top)} modelVersion={mv} "
+                                      f"trafficType={um.get('trafficType')} serviceTier={um.get('serviceTier')} "
+                                      f"createTime={'createTime' in top} thoughts={um.get('thoughtsTokenCount')}")
+                if mv and mv != model:
+                    add_evidence(model, f"model_version_remapped={mv}",
+                        f"渠道把请求模型 {model} 路由到上游变体 {mv} —— 模型名被中间层改写，交付物与请求名不符（-tiered 类后缀常见于聚合分发层）", 2, "flag")
+                return True
+            if code not in (401, 403):
+                break  # 该前缀对鉴权方式不敏感(404/400等), 换下一前缀
     S["native"][model] = "无可用原生端点"
     return False
 
